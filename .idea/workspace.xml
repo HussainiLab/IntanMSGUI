@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2f714523-24c5-45e6-b6ca-2b1dc1f1c344" name="Default" comment="" />
+    <list default="true" id="2f714523-24c5-45e6-b6ca-2b1dc1f1c344" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/intan_rhd_functions.py" afterPath="$PROJECT_DIR$/core/intan_rhd_functions.py" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -9,52 +12,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="DockManager">
-    <window id="8">
-      <content type="file-editors">
-        <state>
-          <leaf>
-            <file leaf-file-name="intan_rhd_functions.py" pinned="false" current-in-tab="true">
-              <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intan_rhd_functions.py">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="238">
-                    <caret line="31" column="62" lean-forward="false" selection-start-line="31" selection-start-column="61" selection-end-line="31" selection-end-column="62" />
-                    <folding>
-                      <element signature="e#287#645#0" expanded="false" />
-                      <element signature="e#2224#2578#0" expanded="false" />
-                      <element signature="e#2623#3436#0" expanded="false" />
-                      <element signature="e#3471#3608#0" expanded="false" />
-                      <element signature="e#5724#12482#0" expanded="false" />
-                      <element signature="e#12517#13315#0" expanded="false" />
-                      <element signature="e#13727#20367#0" expanded="false" />
-                      <element signature="e#20421#21540#0" expanded="false" />
-                      <element signature="e#21612#21997#0" expanded="false" />
-                      <element signature="e#22080#22953#0" expanded="false" />
-                      <element signature="e#23041#23435#0" expanded="false" />
-                      <element signature="e#23520#23884#0" expanded="false" />
-                      <element signature="e#24021#29147#0" expanded="false" />
-                      <element signature="e#29212#30402#0" expanded="false" />
-                      <element signature="e#30432#31126#0" expanded="false" />
-                      <element signature="e#31183#34882#0" expanded="false" />
-                      <element signature="e#34935#37144#0" expanded="false" />
-                      <element signature="e#37198#38057#0" expanded="false" />
-                    </folding>
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
-  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="load_intan_rhd_format.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="load_intan_rhd_format.py" pinned="false" current-in-tab="false">
         <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/load_intan_rhd_format.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="350">
-              <caret line="66" column="12" lean-forward="false" selection-start-line="66" selection-start-column="12" selection-end-line="66" selection-end-column="12" />
+            <state relative-caret-position="1173">
+              <caret line="76" column="0" lean-forward="false" selection-start-line="76" selection-start-column="0" selection-end-line="76" selection-end-column="0" />
               <folding>
                 <element signature="e#83#117#0" expanded="true" />
                 <element signature="e#10110#10255#0" expanded="false" />
@@ -77,8 +41,55 @@
         <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil/read_one_data_block.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="408">
-              <caret line="25" column="27" lean-forward="true" selection-start-line="25" selection-start-column="27" selection-end-line="25" selection-end-column="27" />
+              <caret line="25" column="27" lean-forward="false" selection-start-line="25" selection-start-column="27" selection-end-line="25" selection-end-column="27" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="WritePos.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../VirtualMazeGUI/core/WritePos.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="295">
+              <caret line="404" column="55" lean-forward="false" selection-start-line="404" selection-start-column="55" selection-end-line="404" selection-end-column="55" />
+              <folding>
+                <element signature="e#263#735#0" expanded="false" />
+                <element signature="e#793#1266#0" expanded="false" />
+                <element signature="e#1355#9342#0" expanded="false" />
+                <element signature="e#9408#13321#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="intan_rhd_functions.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/intan_rhd_functions.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="60">
+              <caret line="513" column="47" lean-forward="true" selection-start-line="513" selection-start-column="47" selection-end-line="513" selection-end-column="47" />
+              <folding>
+                <element signature="e#287#645#0" expanded="false" />
+                <element signature="e#690#2172#0" expanded="false" />
+                <element signature="e#2224#2578#0" expanded="false" />
+                <element signature="e#2623#3436#0" expanded="false" />
+                <element signature="e#3471#3608#0" expanded="false" />
+                <element signature="e#3644#5690#0" expanded="false" />
+                <element signature="e#5724#12482#0" expanded="false" />
+                <element signature="e#12517#13315#0" expanded="false" />
+                <element signature="e#13381#13695#0" expanded="false" />
+                <element signature="e#13727#20367#0" expanded="false" />
+                <element signature="e#20421#21540#0" expanded="false" />
+                <element signature="e#21612#21997#0" expanded="false" />
+                <element signature="e#24371#24765#0" expanded="false" />
+                <element signature="e#24850#25214#0" expanded="false" />
+                <element signature="e#25351#30477#0" expanded="false" />
+                <element signature="e#30542#31732#0" expanded="false" />
+                <element signature="e#31762#32456#0" expanded="false" />
+                <element signature="e#32513#36212#0" expanded="false" />
+                <element signature="e#36265#38474#0" expanded="false" />
+                <element signature="e#38528#39387#0" expanded="false" />
+                <element signature="e#39430#42318#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -179,14 +190,14 @@
         <option value="E:/Apollo_D_Drive/code/ml_ephys/ml_ephys/preprocessing/p_mask_out_artifacts.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/IntanMSGUI/convert_position.py" />
         <option value="$PROJECT_DIR$/core/convert_position.py" />
-        <option value="$PROJECT_DIR$/../VirtualMazeGUI/core/WritePos.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil1/read_header.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil1/data_to_result.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil/read_header.py" />
-        <option value="$PROJECT_DIR$/core/intan_rhd_functions.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil/get_bytes_per_data_block.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/load_intan_rhd_format.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intan_rhd_functions.py" />
+        <option value="$PROJECT_DIR$/../VirtualMazeGUI/core/WritePos.py" />
+        <option value="$PROJECT_DIR$/core/intan_rhd_functions.py" />
       </list>
     </option>
   </component>
@@ -212,7 +223,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -229,6 +239,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -386,37 +397,25 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23347548" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23614073" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298077" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25480768" sideWeight="0.5053305" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298611" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25480768" sideWeight="0.4946695" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298077" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25480768" sideWeight="0.5053305" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298611" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23347548" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298077" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25480768" sideWeight="0.4946695" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298077" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -471,7 +470,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="318" />
+      <option name="time" value="324" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -578,7 +577,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
           <caret line="1" column="50" lean-forward="false" selection-start-line="1" selection-start-column="42" selection-end-line="1" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -641,9 +639,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
           <caret line="10" column="0" lean-forward="true" selection-start-line="10" selection-start-column="0" selection-end-line="115" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#18#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -658,7 +653,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="222">
           <caret line="417" column="38" lean-forward="true" selection-start-line="417" selection-start-column="38" selection-end-line="417" selection-end-column="38" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -687,7 +681,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="629">
           <caret line="162" column="44" lean-forward="false" selection-start-line="162" selection-start-column="44" selection-end-line="162" selection-end-column="44" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -716,7 +709,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2034">
           <caret line="483" column="39" lean-forward="false" selection-start-line="483" selection-start-column="39" selection-end-line="483" selection-end-column="39" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -724,10 +716,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="542">
           <caret line="136" column="18" lean-forward="true" selection-start-line="136" selection-start-column="18" selection-end-line="136" selection-end-column="18" />
-          <folding>
-            <element signature="e#22555#23988#0" expanded="false" />
-            <element signature="e#24023#28015#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -735,21 +723,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="8041">
           <caret line="480" column="0" lean-forward="false" selection-start-line="480" selection-start-column="0" selection-end-line="480" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../VirtualMazeGUI/core/WritePos.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1173">
-          <caret line="428" column="4" lean-forward="true" selection-start-line="428" selection-start-column="4" selection-end-line="428" selection-end-column="4" />
-          <folding>
-            <element signature="e#263#735#0" expanded="false" />
-            <element signature="e#793#1266#0" expanded="false" />
-            <element signature="e#1355#9342#0" expanded="false" />
-            <element signature="e#9408#13321#0" expanded="false" />
-            <element signature="e#13369#15239#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -761,7 +734,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="136">
           <caret line="42" column="27" lean-forward="true" selection-start-line="42" selection-start-column="27" selection-end-line="42" selection-end-column="27" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -769,60 +741,22 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="419">
           <caret line="274" column="30" lean-forward="false" selection-start-line="274" selection-start-column="30" selection-end-line="274" selection-end-column="30" />
-          <folding>
-            <element signature="e#0#43#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/IntanMSGUI/convert_position.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-288">
-          <caret line="344" column="32" lean-forward="false" selection-start-line="344" selection-start-column="32" selection-end-line="344" selection-end-column="32" />
-          <folding>
-            <element signature="e#1293#9428#0" expanded="false" />
-            <element signature="e#9476#11346#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil1/read_header.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="50" column="0" lean-forward="true" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil1/read_header.py" />
     <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil/read_header.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1105">
           <caret line="66" column="52" lean-forward="false" selection-start-line="66" selection-start-column="52" selection-end-line="66" selection-end-column="52" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil1/data_to_result.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="26" column="0" lean-forward="false" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/intan_rhd_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="331">
-          <caret line="358" column="54" lean-forward="true" selection-start-line="358" selection-start-column="54" selection-end-line="358" selection-end-column="54" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil1/data_to_result.py" />
     <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil/get_bytes_per_data_block.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
           <caret line="12" column="0" lean-forward="true" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -837,15 +771,15 @@
     <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/intanutil/read_one_data_block.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="408">
-          <caret line="25" column="27" lean-forward="true" selection-start-line="25" selection-start-column="27" selection-end-line="25" selection-end-column="27" />
+          <caret line="25" column="27" lean-forward="false" selection-start-line="25" selection-start-column="27" selection-end-line="25" selection-end-column="27" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/VirtualMaze/load_intan_rhd_format.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="350">
-          <caret line="66" column="12" lean-forward="false" selection-start-line="66" selection-start-column="12" selection-end-line="66" selection-end-column="12" />
+        <state relative-caret-position="1173">
+          <caret line="76" column="0" lean-forward="false" selection-start-line="76" selection-start-column="0" selection-end-line="76" selection-end-column="0" />
           <folding>
             <element signature="e#83#117#0" expanded="true" />
             <element signature="e#10110#10255#0" expanded="false" />
@@ -857,25 +791,60 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
           <caret line="31" column="62" lean-forward="false" selection-start-line="31" selection-start-column="61" selection-end-line="31" selection-end-column="62" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../VirtualMazeGUI/core/WritePos.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="295">
+          <caret line="404" column="55" lean-forward="false" selection-start-line="404" selection-start-column="55" selection-end-line="404" selection-end-column="55" />
+          <folding>
+            <element signature="e#263#735#0" expanded="false" />
+            <element signature="e#793#1266#0" expanded="false" />
+            <element signature="e#1355#9342#0" expanded="false" />
+            <element signature="e#9408#13321#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/IntanMSGUI/convert_position.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="707">
+          <caret line="358" column="49" lean-forward="false" selection-start-line="358" selection-start-column="45" selection-end-line="358" selection-end-column="49" />
+          <folding>
+            <element signature="e#14400#15035#0" expanded="false" />
+            <element signature="e#15098#18796#0" expanded="false" />
+            <element signature="e#18908#19815#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/intan_rhd_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="513" column="47" lean-forward="true" selection-start-line="513" selection-start-column="47" selection-end-line="513" selection-end-column="47" />
           <folding>
             <element signature="e#287#645#0" expanded="false" />
+            <element signature="e#690#2172#0" expanded="false" />
             <element signature="e#2224#2578#0" expanded="false" />
             <element signature="e#2623#3436#0" expanded="false" />
             <element signature="e#3471#3608#0" expanded="false" />
+            <element signature="e#3644#5690#0" expanded="false" />
             <element signature="e#5724#12482#0" expanded="false" />
             <element signature="e#12517#13315#0" expanded="false" />
+            <element signature="e#13381#13695#0" expanded="false" />
             <element signature="e#13727#20367#0" expanded="false" />
             <element signature="e#20421#21540#0" expanded="false" />
             <element signature="e#21612#21997#0" expanded="false" />
-            <element signature="e#22080#22953#0" expanded="false" />
-            <element signature="e#23041#23435#0" expanded="false" />
-            <element signature="e#23520#23884#0" expanded="false" />
-            <element signature="e#24021#29147#0" expanded="false" />
-            <element signature="e#29212#30402#0" expanded="false" />
-            <element signature="e#30432#31126#0" expanded="false" />
-            <element signature="e#31183#34882#0" expanded="false" />
-            <element signature="e#34935#37144#0" expanded="false" />
-            <element signature="e#37198#38057#0" expanded="false" />
+            <element signature="e#24371#24765#0" expanded="false" />
+            <element signature="e#24850#25214#0" expanded="false" />
+            <element signature="e#25351#30477#0" expanded="false" />
+            <element signature="e#30542#31732#0" expanded="false" />
+            <element signature="e#31762#32456#0" expanded="false" />
+            <element signature="e#32513#36212#0" expanded="false" />
+            <element signature="e#36265#38474#0" expanded="false" />
+            <element signature="e#38528#39387#0" expanded="false" />
+            <element signature="e#39430#42318#0" expanded="false" />
           </folding>
         </state>
       </provider>

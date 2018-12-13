@@ -581,8 +581,9 @@ def intan_mountainsort(directory, rhd_session_file, pre_threshold=10, post_thres
 
         check_file_complete(get_windows_filename(metrics_out_fname))
 
+    '''
     # create a cut file so that Tint can read the sorted output
-    '''create_cut(set_filename, tags_bool, pre_threshold=pre_threshold, post_threshold=post_threshold, whiten=whiten,
+    create_cut(set_filename, tags_bool, pre_threshold=pre_threshold, post_threshold=post_threshold, whiten=whiten,
                self=self)
 
     

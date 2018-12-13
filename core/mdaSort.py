@@ -225,7 +225,7 @@ def run_sort(*, raw_fname=None, filt_fname=None, pre_fname=None, geom_fname=None
     run_pipeline_js(pipeline, inputs, outputs, parameters, verbose=verbose, terminal_text_filename=terminal_text_filename)
 
 
-def sort_finished(terminal_output_filename, max_time=300):
+def sort_finished(terminal_output_filename, max_time=600):
     # wait for the terminal output to exist
 
     # max_time = max time in secoinds to wait
@@ -256,7 +256,7 @@ def sort_finished(terminal_output_filename, max_time=300):
 
             file_length = len(output_text)
 
-        while start_sort_time is None:
+        if start_sort_time is None:
             time.sleep(0.1)
             continue
 
@@ -281,8 +281,8 @@ def sort_finished(terminal_output_filename, max_time=300):
 
 
 def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, detect_sign=0, detect_threshold=3,
-             freq_min=300, freq_max=6000, mask_threshold=6, masked_chunk_size=None, mask_num_write_chunks=100,
-             clip_size=50, self=None):
+               freq_min=300, freq_max=6000, mask_threshold=6, masked_chunk_size=None, mask_num_write_chunks=100,
+               clip_size=50, self=None):
 
     tint_basename = os.path.basename(tint_fullpath)
 
@@ -326,38 +326,46 @@ def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, 
         # Fs = int(get_setfile_parameter('rawRate', set_filename))
 
         if masked_chunk_size is None:
-            masked_chunk_size = int(Fs/10)
+            masked_chunk_size = int(Fs / 10)
 
-        run_sort(raw_fname=raw_fname, filt_out_fname=filt_out_fname, pre_out_fname=pre_out_fname,
-                 metrics_out_fname=metrics_out_fname, firings_out=firings_out, masked_out_fname=masked_out_fname,
-                 samplerate=Fs, detect_interval=detect_interval, detect_sign=detect_sign,
-                 detect_threshold=detect_threshold, freq_min=freq_min, freq_max=freq_max, mask_threshold=mask_threshold,
-                 mask_chunk_size=masked_chunk_size, mask_num_write_chunks=mask_num_write_chunks, whiten=whiten,
-                 clip_size=clip_size, terminal_text_filename=terminal_text_filename)
+        sorting = True
+        sorting_attempts = 0
 
-        # wait for the sort to finish before continuing
-        finished, sort_code = sort_finished(get_windows_filename(terminal_text_filename))
+        if os.path.exists(get_windows_filename(terminal_text_filename)):
+            os.remove(get_windows_filename(terminal_text_filename))
 
-        if 'Abort' not in sort_code:
-            # re-try the sort if Abort is not in the code
-            if not finished:
+        while sorting:
+
+            run_sort(raw_fname=raw_fname, filt_out_fname=filt_out_fname, pre_out_fname=pre_out_fname,
+                     metrics_out_fname=metrics_out_fname, firings_out=firings_out, masked_out_fname=masked_out_fname,
+                     samplerate=Fs, detect_interval=detect_interval, detect_sign=detect_sign,
+                     detect_threshold=detect_threshold, freq_min=freq_min, freq_max=freq_max,
+                     mask_threshold=mask_threshold,
+                     mask_chunk_size=masked_chunk_size, mask_num_write_chunks=mask_num_write_chunks, whiten=whiten,
+                     clip_size=clip_size, terminal_text_filename=terminal_text_filename)
+
+            # wait for the sort to finish before continuing
+            finished, sort_code = sort_finished(get_windows_filename(terminal_text_filename))
+
+            if sorting_attempts >= 5:
+                # we've tried to sort a bunch of times, doesn't seem to work
+                sorting = False
+
+            elif 'Abort' in sort_code:
+                # there's a problem with the sort,
+                sorting = False
+                msg = '[%s %s]: There was an error sorting the following file, consult terminal text file: %s!#Red' % \
+                      (str(datetime.datetime.now().date()),
+                       str(datetime.datetime.now().time())[:8], raw_fname)
+
+                if self:
+                    self.LogAppend.myGUI_signal_str.emit(msg)
+                else:
+                    print(msg)
+
+            elif not finished:
                 os.remove(get_windows_filename(terminal_text_filename))
+                sorting_attempts += 1
 
-                run_sort(raw_fname=raw_fname, filt_out_fname=filt_out_fname, pre_out_fname=pre_out_fname,
-                         metrics_out_fname=metrics_out_fname, firings_out=firings_out, masked_out_fname=masked_out_fname,
-                         samplerate=Fs, detect_interval=detect_interval, detect_sign=detect_sign,
-                         detect_threshold=detect_threshold, freq_min=freq_min, freq_max=freq_max,
-                         mask_threshold=mask_threshold,
-                         mask_chunk_size=masked_chunk_size, mask_num_write_chunks=mask_num_write_chunks, whiten=whiten,
-                         clip_size=clip_size, terminal_text_filename=terminal_text_filename)
-
-        else:
-            msg = '[%s %s]: There was an error sorting the following file, consult terminal text file: %s!#Red' % \
-                  (str(datetime.datetime.now().date()),
-                   str(datetime.datetime.now().time())[:8], raw_fname)
-
-            if self:
-                self.LogAppend.myGUI_signal_str.emit(msg)
             else:
-                print(msg)
-            continue
+                sorting = False

@@ -93,6 +93,8 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
     # duration_round = np.ceil(data.shape[1] / Fs_EGF)  # the duration should be rounded up to the nearest integer
     duration_round = int(get_setfile_parameter('duration', set_filename))  # get the duration from the set file
     missing_samples = int(duration_round * Fs_EGF - data.shape[1])
+
+    print('eegconvert validate', get_setfile_parameter('duration', set_filename), duration_round, missing_samples)
     if missing_samples != 0:
         missing_samples = np.tile(np.array([0]), (1, missing_samples))
         data = np.hstack((data, missing_samples))

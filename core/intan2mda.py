@@ -1,4 +1,4 @@
-from core.intan_rhd_functions import read_header, read_data, get_data_limits, get_probe_name
+from core.intan_rhd_functions import read_header, get_data_limits, get_probe_name, get_intan_data
 import numpy as np
 import os
 import datetime
@@ -167,7 +167,7 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
                 stop_index = start_index + n
 
                 digital_input = True
-                data = data[:, start_index:stop_index + 1]
+                data = data[:, start_index:stop_index]
 
         if not digital_input:
 
@@ -189,80 +189,6 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
                 data = data[:, :n]
 
         return data, np.asarray(channel)
-
-
-def get_intan_data(session_files, data_channels, tetrode=None, self=None, verbose=None):
-    file_header = read_header(session_files[0])
-
-    data = np.array([])
-    t_intan = np.array([])
-    data_digital_in = np.array([])
-    # concatenates the data from all the .rhd files
-
-    data_channels = np.asarray(data_channels)
-
-    # analyze the one tetrode's data at a time to attempt to not load too much data into memory at once
-    for session_file in sorted(session_files, reverse=False):
-        # Loads each session and appends them to create one matrix of data for the current tetrode
-
-        if verbose:
-            if tetrode is not None:
-                msg = '[%s %s]: Currently loading T%d data from the following file: %s' % \
-                      (str(datetime.datetime.now().date()),
-                       str(datetime.datetime.now().time())[:8], tetrode, session_file)
-
-            else:
-                ch_str = ''
-
-                max_i = len(data_channels)
-                for i, channel in enumerate(data_channels):
-                    if i == max_i - 1 and i != 0:
-                        ch_str += 'and Ch%d' % channel
-                    elif i == max_i - 1 and i == 0:
-                        ch_str += 'Ch%d ' % channel
-                    else:
-                        ch_str += 'Ch%d, ' % channel
-
-                msg = '[%s %s]: Currently loading %s from the following file: %s' % \
-                      (str(datetime.datetime.now().date()),
-                       str(datetime.datetime.now().time())[:8], ch_str, session_file)
-                # self.LogAppend.myGUI_signal.emit(msg)
-
-                # self.LogAppend.myGUI_signal.emit(msg)
-            if self:
-                self.LogAppend.myGUI_signal_str.emit(msg)
-            else:
-                print(msg)
-
-        file_data = read_data(session_file)
-
-        # Acquiring session information
-
-        # read the digital values if given
-        if file_header['num_board_dig_in_channels'] > 0:
-            if data_digital_in.shape[0] == 0:
-                data_digital_in = file_data['board_dig_in_data']
-            else:
-                data_digital_in = np.concatenate((data_digital_in, file_data['board_dig_in_data']), axis=1)
-
-        # read the ephys data
-        if data.shape[0] == 0:
-            data = file_data['amplifier_data']
-            # bits, data is arranged into (number of channels, number of samples)
-            data = data[data_channels - 1, :]
-        else:
-            data = np.concatenate((data, file_data['amplifier_data'][data_channels - 1, :]), axis=1)
-
-        # read the time data
-        if t_intan.shape[0] == 0:
-            t_intan = file_data[
-                't_amplifier']  # the times recorded by the intan system, starts at the value of 0 seconds
-        else:
-            # the time's always start at 0, per .rhd file, so when putting them together you need add
-            # to each time value
-            t_intan = np.concatenate((t_intan, file_data['t_amplifier']), axis=0)
-
-    return data, t_intan, data_digital_in
 
 
 def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=True, notch_freq=60,

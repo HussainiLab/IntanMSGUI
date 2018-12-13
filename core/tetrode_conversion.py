@@ -171,10 +171,14 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
     # set_filename = '%s.set' % (os.path.join(directory, tint_basename))
     set_filename = '%s.set' % output_basename
 
+    cell_numbers = None
+
     tetrode = int(mda_basename[find_sub(mda_basename, '_')[-1] + 2:])
 
-    new_basename = '%s_ms' % tint_basename
-    tetrode_filepath = '%s.%d' % (os.path.join(directory, new_basename), tetrode)
+    # new_basename = '%s_ms' % tint_basename
+    # tetrode_filepath = '%s.%d' % (os.path.join(directory, new_basename), tetrode)
+
+    tetrode_filepath = '%s.%d' % (output_basename, tetrode)
 
     # get the tint spike information, placing the event at the 11th index
     pre_spike = pre_spike_samples + 1
@@ -354,7 +358,7 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
     # ------------ creating the cut file ----------------------- #
 
     # output_basename = '%s_ms' % tint_basename
-
+    clu_filename = '%s.clu.%d' % (os.path.join(directory, output_basename), tetrode)
     cut_filename = '%s_%d.cut' % (os.path.join(directory, output_basename), tetrode)
 
     if os.path.exists(cut_filename):
@@ -399,7 +403,7 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
             spike_times = None
             cell_numbers = cell_numbers[spike_bool]
 
-        create_cut(cut_filename, cell_numbers, tetrode, tint_basename, output_basename, self=self)
+        create_cut(cut_filename, clu_filename, cell_numbers, tetrode, tint_basename, output_basename, self=self)
 
 
 def batch_basename_tetrodes(directory, tint_basename, output_basename, Fs, pre_spike_samples=10, post_spike_samples=40,

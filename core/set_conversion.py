@@ -77,8 +77,8 @@ def get_session_parameters(tint_basename, session_files, Fs, pre_spike_samples=1
         clip_filename = os.path.join(session_path, '%s_clips.json' % tint_basename)
 
         if os.path.exists(clip_filename):
-            with open(clip_filename, 'r') as f:
-                clip_data = json.load(f)
+            with open(clip_filename, 'r') as f2:
+                clip_data = json.load(f2)
 
             channel_gains = np.zeros(n_channels)
             channel_scalar8s = np.zeros(n_channels)
@@ -505,11 +505,13 @@ def write_set(filename, session_files, session_parameters):
         for chan in range(0, int(session_parameters['n_channels'])):
             if int(chan) + 1 == 1:
                 line = ['\nEEG_ch_%d %d' % (chan + 1, chan + 1),
-                        '\nsaveEEG_ch_%d %d' % (chan + 1, 1),
+                        # default we set the bool to 0, we will overwrite this when we create eeg
+                        '\nsaveEEG_ch_%d %d' % (chan + 1, 0),
                         '\nnullEEG %d' % (0)]
             else:
                 line = ['\nEEG_ch_%d %d' % (chan + 1, chan + 1),
-                        '\nsaveEEG_ch_%d %d' % (chan + 1, 1)]
+                        # default we set the bool to 0, we will overwrite this when we create eeg
+                        '\nsaveEEG_ch_%d %d' % (chan + 1, 0)]
             f.seek(0, 2)
             f.writelines(line)
 
@@ -550,7 +552,7 @@ def write_set(filename, session_files, session_parameters):
                  '\nautoPrompt 0',
                  '\ntrigMode 0',
                  '\ntrigChan 1',
-                 '\nsaveEGF 0',
+                 '\nsaveEGF 1',
                  '\nrejstart %d' % session_parameters['rejstart'],
                  '\nrejthreshtail %d' % session_parameters['rejthreshtail'],
                  '\nrejthreshupper %d' % session_parameters['rejthreshupper'],

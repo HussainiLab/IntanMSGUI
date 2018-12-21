@@ -229,7 +229,8 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
 
         A, _ = readMDA(firings_out)
 
-        spike_times = (A[1, :]).astype(int)  # at this stage it is in index values (0-based)
+        spike_channel = A[0, :].astype(int)
+        spike_times = A[1, :].astype(int)  # at this stage it is in index values (0-based)
         cell_numbers = A[2, :].astype(int)
         # ------------- creating clips ---------------------- #
 
@@ -267,6 +268,7 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
 
         spike_bool = np.where((spike_times + post_spike < max_n) * (spike_times - pre_spike >= 0))[0]
 
+        spike_channel = spike_channel[spike_bool]
         spike_times = spike_times[spike_bool]
         cell_numbers = cell_numbers[spike_bool]
 

@@ -13,6 +13,24 @@ import datetime
 import json
 
 
+def overwrite_set_parameter(set_filename, parameter_name, parameter_value):
+    parameter_found = False
+    file_data = ''
+    with open(set_filename, 'r') as f:
+        for line in f:
+            if line[:len(parameter_name)] == parameter_name:
+                file_data += '%s %s\n' % (parameter_name, parameter_value)
+                parameter_found = True
+            else:
+                file_data += line
+
+    if parameter_found:
+        with open(set_filename, 'w') as f:
+            f.write(file_data)
+    else:
+        print('The "%s" parameter has not been found in the following set file: %s!' % (parameter_name, set_filename))
+
+
 def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notch_freq=60, self=None):
     # data is given in int16
 
@@ -94,7 +112,6 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
     duration_round = int(get_setfile_parameter('duration', set_filename))  # get the duration from the set file
     missing_samples = int(duration_round * Fs_EGF - data.shape[1])
 
-    print('eegconvert validate', get_setfile_parameter('duration', set_filename), duration_round, missing_samples)
     if missing_samples != 0:
         missing_samples = np.tile(np.array([0]), (1, missing_samples))
         data = np.hstack((data, missing_samples))
@@ -223,6 +240,7 @@ def write_eeg(filepath, data, Fs, set_filename=None):
 
 
 def fir_hann(data, Fs, cutoff, n_taps=101, showresponse=0):
+
     # The Nyquist rate of the signal.
     nyq_rate = Fs / 2
 
@@ -363,7 +381,54 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
     write_eeg(filename, data, Fs_EGF, set_filename=set_filename)
 
 
-def convert_eeg(session_files, tint_basename, output_basename, Fs, self=None):
+def eeg_channels_to_filenames(channels, directory, output_basename):
+    eeg_filenames = []
+    egf_filenames = []
+
+    for i in np.arange(len(channels)):
+        eeg_number = i + 1
+
+        if eeg_number == 1:
+            eeg_filename = os.path.join(directory, output_basename + '.eeg')
+            egf_filename = os.path.join(directory, output_basename + '.egf')
+        else:
+            eeg_filename = os.path.join(directory, output_basename + '.eeg%d' % (eeg_number))
+            egf_filename = os.path.join(directory, output_basename + '.egf%d' % (eeg_number))
+
+        eeg_filenames.append(eeg_filename)
+        egf_filenames.append(egf_filename)
+
+    return eeg_filenames, egf_filenames
+
+
+def get_eeg_channels(probe_map, directory, output_basename, channels='all'):
+    """
+
+    :param method:
+    :return:
+    """
+
+    tetrode_channels = probe_map.values()
+
+    if type(channels) == str:
+        if channels == 'all':
+            # All of the channels will be saved as an EEG / EGF file
+            channels = np.asarray(list(tetrode_channels)).flatten()
+        elif channels == 'first':
+            # only convert the first channel in each tetrode
+            channels = np.asarray([channel[0] for channel in tetrode_channels])
+
+    eeg_filenames, egf_filenames = eeg_channels_to_filenames(channels, directory, output_basename)
+
+    return eeg_filenames, egf_filenames, channels
+
+
+def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_channels='first', self=None):
+    """
+    This method will create all the eeg and egf files
+
+
+    """
     directory = os.path.dirname(session_files[0])
 
     raw_fnames = [os.path.join(directory, file) for file in os.listdir(
@@ -373,59 +438,113 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, self=None):
 
     probe_map = tetrode_map[probe]
 
-    for file in raw_fnames:
+    # get eeg and egf files + channels to convert
+    eeg_filenames, egf_filenames, eeg_channels = get_eeg_channels(probe_map, directory, output_basename,
+                                                                  channels=convert_channels)
 
-        eeg_filenames = []
-        egf_filenames = []
+    total_files_n = len(eeg_filenames) + len(egf_filenames)
+
+    cue_fname = os.path.join(directory, tint_basename + '_cues.json')
+
+    with open(cue_fname) as f:
+        cue_data = json.load(f)
+
+    if 'converted_eeg' in cue_data.keys():
+        # then the session has been converted already, check to ensure that we maintain the correct naming
+
+        # get the converted eeg channel numbers
+        converted_eegs_dict = cue_data['converted_eeg']
+
+        converted_eegs = np.asarray([converted_eegs_dict[key] for key in sorted(
+            converted_eegs_dict)])
+
+        # get the converted eeg/egf filenames
+        eeg_converted, egf_converted = eeg_channels_to_filenames(converted_eegs, directory, output_basename)
+        for i in np.arange(len(eeg_converted)):
+            if i < len(eeg_channels):
+                if converted_eegs[i] != eeg_channels[i]:
+                    # then the eeg_filename corresponds to the wrong channel, delete it
+                    os.remove(eeg_converted[i])
+                    os.remove(egf_converted[i])
+            else:
+                # delete these files, they are no longer necessary in the new conversion
+                os.remove(eeg_converted[i])
+                os.remove(egf_converted[i])
+
+    else:
+        # deleting old files before the implementation of converted_eeg was used
+        eeg_converted = [os.path.join(directory, file) for file in os.listdir(directory) if
+                         output_basename + '.eeg' in file]
+        egf_converted = [os.path.join(directory, file) for file in os.listdir(directory) if
+                         output_basename + '.egf' in file]
+
+        for file in eeg_converted + egf_converted:
+            os.remove(file)
+
+    # check if the files have already been created
+    file_exists = 0
+    for create_file in (eeg_filenames + egf_filenames):
+        if os.path.exists(create_file):
+            file_exists += 1
+
+    if file_exists == total_files_n:
+
+        msg = '[%s %s]: All the EEG/EGF files for the following session is converted: %s!' % \
+              (str(datetime.datetime.now().date()),
+               str(datetime.datetime.now().time())[:8], tint_basename)
+        if self is not None:
+            self.LogAppend.myGUI_signal.emit(msg)
+        else:
+            print(msg)
+
+        return
+
+    # set_filename = '%s.set' % (os.path.join(directory, tint_basename))
+    set_filename = '%s.set' % output_basename
+
+    for file in raw_fnames:
 
         mda_basename = os.path.splitext(file)[0]
         mda_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
 
         tint_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
 
-        # set_filename = '%s.set' % (os.path.join(directory, tint_basename))
-        set_filename = '%s.set' % output_basename
-
         tetrode = int(mda_basename[find_sub(mda_basename, '_')[-1] + 2:])
 
         tetrode_channels = probe_map[tetrode]
 
-        for i in np.arange(len(tetrode_channels)):
-            eeg_number = tetrode_channels[i]
+        channel_bool = np.where(np.in1d(eeg_channels, tetrode_channels))[0]
 
-            if eeg_number == 1:
-                eeg_filename = os.path.join(directory, output_basename + '.eeg')
-                egf_filename = os.path.join(directory, output_basename + '.egf')
-            else:
-                eeg_filename = os.path.join(directory, output_basename + '.eeg%d' % (eeg_number))
-                egf_filename = os.path.join(directory, output_basename + '.egf%d' % (eeg_number))
+        if len(channel_bool) > 0:
+            # then this tetrode has a channel to be saved
+            current_files = [eeg_filenames[x] for x in channel_bool] + \
+                            [egf_filenames[x] for x in channel_bool]
 
-            eeg_filenames.append(eeg_filename)
-            egf_filenames.append(egf_filename)
+            file_written = 0
+            for cfile in current_files:
+                if os.path.exists(cfile):
+                    file_written += 1
 
-        total_files_n = len(eeg_filenames) + len(egf_filenames)
+            if file_written == len(current_files):
+                for cfile in current_files:
+                    if '.eeg' in file:
+                        msg = '[%s %s]: The following EEG file has already been created, skipping: %s!' % \
+                              (str(datetime.datetime.now().date()),
+                               str(datetime.datetime.now().time())[:8], cfile)
+                    else:
+                        msg = '[%s %s]: The following EGF file has already been created, skipping: %s!' % \
+                              (str(datetime.datetime.now().date()),
+                               str(datetime.datetime.now().time())[:8], cfile)
+                    if self is not None:
+                        self.LogAppend.myGUI_signal.emit(msg)
+                    else:
+                        print(msg)
+                continue
 
-        file_exists = 0
-        for create_file in (eeg_filenames + egf_filenames):
-            if os.path.exists(create_file):
-                file_exists += 1
+            data, _ = readMDA(file)  # size: len(tetrode_channels) x number of samples, units: bits
 
-        if file_exists == total_files_n:
-            msg = '[%s %s]: All the EEG/EGF files for tetrode %d exist: skipping!' % \
-                  (str(datetime.datetime.now().date()),
-                   str(datetime.datetime.now().time())[:8], tetrode)
-            if self is not None:
-                self.LogAppend.myGUI_signal.emit(msg)
-            else:
-                print(msg)
-
-            continue
-
-        else:
-
-            data, _ = readMDA(file)
-
-            data = data * intan_scalar()  # converting to uV
+            # convert from bits to uV
+            data = data * intan_scalar()  # units: uV
 
             file_header = read_header(session_files[0])  # read the file header information from a session file
             n_channels = file_header['num_amplifier_channels']
@@ -445,7 +564,13 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, self=None):
             else:
                 raise FileNotFoundError('Clip Filename not found!')
 
-            for eeg_filename, egf_filename, channel_number in zip(eeg_filenames, egf_filenames, probe_map[tetrode]):
+            # for eeg_filename, egf_filename, channel_number in zip(eeg_filenames, egf_filenames, probe_map[tetrode]):
+            for i in channel_bool:
+                eeg_filename = eeg_filenames[i]
+                egf_filename = egf_filenames[i]
+                channel_number = eeg_channels[i]
+                channel_i = np.where(tetrode_channels == channel_number)[0]
+
                 if os.path.exists(eeg_filename):
 
                     EEG = np.array([])
@@ -467,10 +592,21 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, self=None):
                         print(msg)
 
                     # load data
-                    EEG = data[i, :].reshape((1, -1))
+                    EEG = data[channel_i, :].reshape((1, -1))
 
-                    create_eeg(eeg_filename, EEG, Fs, set_filename, channel_scalar16s[channel_number-1],
+                    create_eeg(eeg_filename, EEG, Fs, set_filename, channel_scalar16s[channel_number - 1],
                                DC_Blocker=False, self=self)
+
+                    # this will overwrite the eeg settings that is in the .set file
+                    eeg_ext = os.path.splitext(eeg_filename)[1]
+                    if eeg_ext == '.eeg':
+                        eeg_number = '1'
+                    else:
+                        eeg_number = eeg_ext[4:]
+
+                    # overwrite so we know which eeg channel belongs to which ephys channel
+                    overwrite_set_parameter(set_filename, 'EEG_ch_%s' % eeg_number, channel_number)
+                    overwrite_set_parameter(set_filename, 'saveEEG_ch_%s' % eeg_number, '1')
 
                 if os.path.exists(egf_filename):
 
@@ -493,9 +629,19 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, self=None):
                     else:
                         print(msg)
 
-                    EEG = data[i, :].reshape((1, -1))
+                    EEG = data[channel_i, :].reshape((1, -1))
 
-                    create_egf(egf_filename, EEG, Fs, set_filename, channel_scalar16s[channel_number-1],
+                    create_egf(egf_filename, EEG, Fs, set_filename, channel_scalar16s[channel_number - 1],
                                DC_Blocker=False, self=self)
 
                 EEG = None
+
+    eeg_dict = {}
+    for k in np.arange(len(eeg_channels)):
+        # using the int because json doesn't like np.int32
+        eeg_dict[int(k)] = int(eeg_channels[k])
+
+    cue_data['converted_eeg'] = eeg_dict
+
+    with open(cue_fname, 'w') as f:
+        json.dump(cue_data, f)

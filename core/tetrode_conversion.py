@@ -107,8 +107,33 @@ def write_tetrode_data(filepath, spike_times, spike_data, samples_per_spike=50, 
         f.write(bytes('\r\ndata_end\r\n', 'utf-8'))
 
 
-def get_clip_values(data_masked, spike_times, remove_spike_percentage=1, detect_sign=0, remove_outliers=False):
-    peak_values = np.sort(data_masked[:, spike_times].flatten())
+def get_clip_values(data_masked, spike_times, spike_channel, remove_spike_percentage=1,
+                    detect_sign=0, remove_outliers=False, method='max', clip_scalar=1):
+    """
+
+    method = 'max'  # it will find the max (or min in case of negative peaks)
+
+    """
+
+    # ----------- calculate the peaks for each cell -------------
+    # peak_values = np.sort(data_masked[:, spike_times].flatten())
+    peak_values = np.array([])
+    for chan in np.unique(spike_channel):
+        chan_bool = np.where(spike_channel == chan)[0]
+        chan_spikes = data_masked[chan - 1, spike_times[chan_bool]]
+
+        if detect_sign == 1:
+            # just make sure that no spike times with negative peaks leak in
+            sign_bool = np.where(chan_spikes >= 0)[0]
+            chan_spikes = chan_spikes[sign_bool]
+        elif detect_sign == -1:
+            # just make sure no spike times with positive peaks leak in
+            sign_bool = np.where(chan_spikes <= 0)[0]
+            chan_spikes = chan_spikes[sign_bool]
+
+        peak_values = np.hstack((peak_values, chan_spikes))
+
+    peak_values = np.sort(peak_values.flatten())
 
     n_spikes = len(peak_values)
     remove_n = int(n_spikes * (remove_spike_percentage / 100))  # how many
@@ -131,13 +156,20 @@ def get_clip_values(data_masked, spike_times, remove_spike_percentage=1, detect_
             # negative peaks, remove some of the negative peak values
             peak_values = peak_values[remove_n:]
 
-    clip_value = np.amax(np.abs([np.amax(peak_values), np.amin(peak_values)]))
+    if method == 'max':
+        clip_value = np.amax(np.abs([np.amax(peak_values), np.amin(peak_values)]))
+    elif method == 'median':
+        clip_value = np.abs(np.median(peak_values))
+    elif method == 'mean':
+        clip_value = np.abs(np.mean(peak_values))
+    else:
+        raise ValueError("error in the clipping method! Should be 'max', 'median', or 'mean'.")
 
-    return clip_value
+    return clip_scalar * clip_value
 
 
 def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, post_spike_samples=40, detect_sign=0,
-                    remove_spike_percentage=1,  remove_outliers=False, self=None):
+                    remove_spike_percentage=1,  remove_outliers=False, clip_method='max', clip_scalar=1, self=None):
     """
     convert_tetrode will take an input filename that was processed and sorted via MountainSort
     and convert the MountainSorted output to a Tint output.
@@ -169,7 +201,7 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
     tint_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
 
     # set_filename = '%s.set' % (os.path.join(directory, tint_basename))
-    set_filename = '%s.set' % output_basename
+    # set_filename = '%s.set' % output_basename
 
     cell_numbers = None
 
@@ -285,8 +317,9 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
         data_masked = data_masked * intan_scalar()
 
         # the value representing the half bit range in uV (128 bit value represents this in uV)
-        channel_clip = get_clip_values(data_masked, spike_times, detect_sign=detect_sign,
+        channel_clip = get_clip_values(data_masked, spike_times, spike_channel, detect_sign=detect_sign,
                                        remove_spike_percentage=remove_spike_percentage,
+                                       method=clip_method, clip_scalar=clip_scalar,
                                        remove_outliers=remove_outliers)
 
         ADC_Fullscale = 1500  # mV, this is what the half voltage swing is in Tint
@@ -409,8 +442,8 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
 
 
 def batch_basename_tetrodes(directory, tint_basename, output_basename, Fs, pre_spike_samples=10, post_spike_samples=40,
-                            detect_sign=0, remove_spike_percentage=1, remove_outliers=False,
-                            self=None):
+                            detect_sign=0, remove_spike_percentage=1, remove_outliers=False, clip_scalar=1,
+                            clip_method='max', self=None):
 
     # find the filenames that were used by MountainSort to be sorted.
     filt_fnames = [os.path.join(directory, file) for file in os.listdir(
@@ -421,6 +454,8 @@ def batch_basename_tetrodes(directory, tint_basename, output_basename, Fs, pre_s
             convert_tetrode(file, output_basename, Fs, pre_spike_samples=pre_spike_samples,
                             post_spike_samples=post_spike_samples, detect_sign=detect_sign,
                             remove_spike_percentage=remove_spike_percentage,  remove_outliers=remove_outliers,
+                            clip_method=clip_method,
+                            clip_scalar=clip_scalar,
                             self=self)
 
         except FileNotFoundError:

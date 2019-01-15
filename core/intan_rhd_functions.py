@@ -82,6 +82,7 @@ def get_intan_data(session_files, data_channels=None, tetrode=None, self=None, v
 
         if tetrode_data:
             # read the ephys data
+
             if data.shape[0] == 0:
                 data = file_data['amplifier_data']
                 # bits, data is arranged into (number of channels, number of samples)

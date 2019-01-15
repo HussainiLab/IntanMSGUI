@@ -226,7 +226,7 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
             if self is None:
                 print(msg)
             else:
-                self.mySrc2.myGUI_signal.emit(msg)
+                self.mySrc2.myGUI_signal_str.emit(msg)
 
         with open(cue_fname, 'r') as f:
             settings = json.load(f)
@@ -460,7 +460,7 @@ def convert_position(session_files, position_filename, positionSampleFreq, outpu
         if self is None:
             print(msg)
         else:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
 
             rewrite_pos(session_files, positionSampleFreq, self=self)
 
@@ -473,7 +473,7 @@ def convert_position(session_files, position_filename, positionSampleFreq, outpu
         if self is None:
             print(msg)
         else:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
 
     output_pos_filename = '%s.pos' % output_basename
     if not os.path.exists(output_pos_filename):

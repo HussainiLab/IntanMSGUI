@@ -235,50 +235,59 @@ def sort_finished(terminal_output_filename, max_time=600):
 
     sort_invalid_string = ['Process returned with non-zero exit code']
 
+    already_analyzed_string = '%s%s%s' % ('[ Checking process cache ... ]\n',
+                                          '[ Process ms4_geoff.sort already completed. ]\n',
+                                          '[ Done. ]\n')
+
     finished_string = '%s%s%s' % ('[ Saving to process cache ... ]\n',
                                   '[ Removing temporary directory ... ]\n',
                                   '[ Done. ]\n')
 
-    sort_string = 'ms4_geoff_spec.py.mp ms4_geoff.sort'
 
-    file_sorted = False
     finished = False
-    start_time_set = False
-    start_sort_time = None
+
+    prev_last_line = ''
+
+    file_error = False
 
     while not finished:
         try:
             with open(terminal_output_filename, 'r') as f:
-                output_text = ''.join(f.readlines())  # want to make sure that the output is in text not a list
+                data = f.readlines()
+                output_text = ''.join(data)  # want to make sure that the output is in text not a list
+                last_line = data[-1]
+
+                # we will update the next step, if the next step
+                # hangs for the max time it will restart
+                if last_line != prev_last_line:
+                    next_step_time = time.time()
+                    prev_last_line = last_line
+
+                if time.time() - next_step_time >= max_time:
+                    # we've waited long enough for the file to sort.
+                    return False, "Retry"
         except PermissionError:
             continue
-
-        if sort_string in output_text and not file_sorted and not start_time_set:
-            start_sort_time = time.time()
-            start_time_set = True
-
-            file_length = len(output_text)
-
-        if start_sort_time is None:
-            time.sleep(0.1)
+        except FileNotFoundError:
+            if not file_error:
+                time.sleep(0.1)
+                file_error = True
+                continue
+            else:
+                return False, "Retry"
+        except IndexError:
             continue
 
-        if time.time() - start_sort_time >= max_time:
-            # we've waited long enough for the file to sort.
-            return False, "Retry"
+        if already_analyzed_string in output_text:
+            finished = True
+
+        if finished_string in output_text:
+            finished = True
 
         # check if the sort was broken.
         for invalid_str in sort_invalid_string:
             if invalid_str in output_text:
                 return False, 'Abort'
-
-        if len(output_text) == file_length:
-            continue
-        else:
-            file_sorted = True
-
-        if finished_string in output_text:
-            finished = True
 
     return True, 'Complete'
 
@@ -286,7 +295,6 @@ def sort_finished(terminal_output_filename, max_time=600):
 def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, detect_sign=0, detect_threshold=3,
                freq_min=300, freq_max=6000, mask_threshold=6, masked_chunk_size=None, mask_num_write_chunks=100,
                clip_size=50, self=None):
-
     tint_basename = os.path.basename(tint_fullpath)
 
     # set_filename = '%s.set' % tint_fullpath
@@ -328,7 +336,7 @@ def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, 
                 print(msg)
             continue
 
-        terminal_text_filename = get_ubuntu_path(mda_basename + '_terminal.txt')
+        terminal_basename = get_ubuntu_path(mda_basename + '_terminal')
 
         raw_fname = get_ubuntu_path(file)
 
@@ -338,12 +346,19 @@ def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, 
             masked_chunk_size = int(Fs / 10)
 
         sorting = True
+
         sorting_attempts = 0
+
+        terminal_text_filename = '%s.txt' % terminal_basename
 
         if os.path.exists(get_windows_filename(terminal_text_filename)):
             os.remove(get_windows_filename(terminal_text_filename))
+            time.sleep(0.5)
 
         while sorting:
+
+            if sorting_attempts > 0:
+                terminal_text_filename = '%s_%d.txt' % (terminal_basename, sorting_attempts)
 
             run_sort(raw_fname=raw_fname, filt_out_fname=filt_out_fname, pre_out_fname=pre_out_fname,
                      metrics_out_fname=metrics_out_fname, firings_out=firings_out, masked_out_fname=masked_out_fname,
@@ -353,7 +368,9 @@ def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, 
                      mask_chunk_size=masked_chunk_size, mask_num_write_chunks=mask_num_write_chunks, whiten=whiten,
                      clip_size=clip_size, terminal_text_filename=terminal_text_filename)
 
+            # time.sleep(0.5)
             # wait for the sort to finish before continuing
+
             finished, sort_code = sort_finished(get_windows_filename(terminal_text_filename))
 
             if sorting_attempts >= 5:
@@ -373,7 +390,8 @@ def sort_intan(directory, tint_fullpath, Fs, whiten='true', detect_interval=10, 
                     print(msg)
 
             elif not finished:
-                os.remove(get_windows_filename(terminal_text_filename))
+                # os.remove(get_windows_filename(terminal_text_filename))
+                # time.sleep(0.5)
                 sorting_attempts += 1
 
             else:

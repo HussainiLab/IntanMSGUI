@@ -40,7 +40,7 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
                str(datetime.datetime.now().time())[:8], filename)
 
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
         return
@@ -58,7 +58,7 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
          str(datetime.datetime.now().time())[:8])
 
     if self is not None:
-        self.LogAppend.myGUI_signal.emit(msg)
+        self.LogAppend.myGUI_signal_str.emit(msg)
     else:
         print(msg)
 
@@ -74,7 +74,7 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
                str(datetime.datetime.now().time())[:8])
 
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
 
@@ -87,7 +87,7 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
                str(datetime.datetime.now().time())[:8])
 
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
 
@@ -130,7 +130,7 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
          str(datetime.datetime.now().time())[:8])
 
     if self is not None:
-        self.LogAppend.myGUI_signal.emit(msg)
+        self.LogAppend.myGUI_signal_str.emit(msg)
     else:
         print(msg)
 
@@ -289,7 +289,7 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
                str(datetime.datetime.now().time())[:8], filename)
 
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
         return
@@ -306,7 +306,7 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
          str(datetime.datetime.now().time())[:8])
 
     if self is not None:
-        self.LogAppend.myGUI_signal.emit(msg)
+        self.LogAppend.myGUI_signal_str.emit(msg)
     else:
         print(msg)
 
@@ -322,7 +322,7 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
              str(datetime.datetime.now().time())[:8])
 
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
 
@@ -335,7 +335,7 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
              str(datetime.datetime.now().time())[:8])
 
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
 
@@ -493,7 +493,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
               (str(datetime.datetime.now().date()),
                str(datetime.datetime.now().time())[:8], tint_basename)
         if self is not None:
-            self.LogAppend.myGUI_signal.emit(msg)
+            self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
 
@@ -536,7 +536,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                               (str(datetime.datetime.now().date()),
                                str(datetime.datetime.now().time())[:8], cfile)
                     if self is not None:
-                        self.LogAppend.myGUI_signal.emit(msg)
+                        self.LogAppend.myGUI_signal_str.emit(msg)
                     else:
                         print(msg)
                 continue
@@ -578,7 +578,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                           (str(datetime.datetime.now().date()),
                            str(datetime.datetime.now().time())[:8], eeg_filename)
                     if self is not None:
-                        self.LogAppend.myGUI_signal.emit(msg)
+                        self.LogAppend.myGUI_signal_str.emit(msg)
                     else:
                         print(msg)
                 else:
@@ -587,7 +587,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                            str(datetime.datetime.now().time())[:8], eeg_filename)
 
                     if self is not None:
-                        self.LogAppend.myGUI_signal.emit(msg)
+                        self.LogAppend.myGUI_signal_str.emit(msg)
                     else:
                         print(msg)
 
@@ -614,7 +614,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                           (str(datetime.datetime.now().date()),
                            str(datetime.datetime.now().time())[:8], egf_filename)
                     if self is not None:
-                        self.LogAppend.myGUI_signal.emit(msg)
+                        self.LogAppend.myGUI_signal_str.emit(msg)
                     else:
                         print(msg)
 
@@ -625,7 +625,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                            str(datetime.datetime.now().time())[:8], egf_filename)
 
                     if self is not None:
-                        self.LogAppend.myGUI_signal.emit(msg)
+                        self.LogAppend.myGUI_signal_str.emit(msg)
                     else:
                         print(msg)
 

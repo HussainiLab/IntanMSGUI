@@ -2,20 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2f714523-24c5-45e6-b6ca-2b1dc1f1c344" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/core/gui_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/IntanMSGUI.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/IntanMSGUI.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/batch_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/batch_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/convert_position.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/convert_position.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/eeg_conversion.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/eeg_conversion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/intan_mountainsort.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/intan_mountainsort.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core/intan_rhd_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/intan_rhd_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/mdaSort.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/mdaSort.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/tetrode_conversion.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/tetrode_conversion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/batch_settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/batch_settings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings/directory.json" beforeDir="false" afterPath="$PROJECT_DIR$/settings/directory.json" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -41,7 +29,7 @@
         <entry file="file://$PROJECT_DIR$/core/batch_functions.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="306">
-              <caret line="18" column="67" lean-forward="true" selection-start-line="18" selection-start-column="67" selection-end-line="18" selection-end-column="67" />
+              <caret line="18" column="67" selection-start-line="18" selection-start-column="67" selection-end-line="18" selection-end-column="67" />
               <folding>
                 <element signature="e#0#25#0" expanded="true" />
               </folding>
@@ -62,16 +50,16 @@
         <entry file="file://$PROJECT_DIR$/core/eeg_conversion.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="491">
-              <caret line="442" column="81" lean-forward="true" selection-start-line="442" selection-start-column="81" selection-end-line="442" selection-end-column="81" />
+              <caret line="442" column="81" selection-start-line="442" selection-start-column="81" selection-end-line="442" selection-end-column="81" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/mdaSort.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-155">
-              <caret line="338" column="25" selection-start-line="338" selection-start-column="8" selection-end-line="338" selection-end-column="25" />
+            <state relative-caret-position="321">
+              <caret line="366" column="39" selection-start-line="366" selection-start-column="39" selection-end-line="366" selection-end-column="39" />
               <folding>
                 <element signature="e#0#43#0" expanded="true" />
               </folding>
@@ -91,12 +79,13 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/intan_rhd_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="31" column="23" lean-forward="true" selection-start-line="31" selection-start-column="23" selection-end-line="31" selection-end-column="23" />
+            <state relative-caret-position="680">
+              <caret line="627" lean-forward="true" selection-start-line="627" selection-end-line="627" />
               <folding>
+                <element signature="e#0#18#0" expanded="true" />
                 <element signature="e#3826#5308#0" />
                 <element signature="e#5360#5714#0" />
                 <element signature="e#5759#6572#0" />
@@ -107,7 +96,6 @@
                 <element signature="e#16863#23503#0" />
                 <element signature="e#23557#24676#0" />
                 <element signature="e#24748#25133#0" />
-                <element signature="e#25215#27419#0" />
                 <element signature="e#27507#27901#0" />
                 <element signature="e#27986#28350#0" />
                 <element signature="e#28487#33613#0" />
@@ -126,7 +114,7 @@
         <entry file="file://$PROJECT_DIR$/IntanMSGUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1069">
-              <caret line="232" column="57" lean-forward="true" selection-start-line="232" selection-start-column="57" selection-end-line="232" selection-end-column="57" />
+              <caret line="232" column="57" selection-start-line="232" selection-start-column="57" selection-end-line="232" selection-end-column="57" />
               <folding>
                 <element signature="e#0#26#0" expanded="true" />
               </folding>
@@ -157,8 +145,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>detect</find>
-      <find>and</find>
       <find>detect_sign</find>
       <find>file_header</find>
       <find>cues_filename</find>
@@ -183,10 +169,12 @@
       <find>clip_method</find>
       <find>mygui</find>
       <find>flip_sign</find>
-      <find>sort_finished</find>
       <find>is_session_beginn</find>
       <find>get_eeg_channels</find>
       <find>digital_data</find>
+      <find>sort_finished</find>
+      <find>get_data_limits</find>
+      <find>detect</find>
     </findStrings>
     <replaceStrings>
       <replace>sleep 1</replace>
@@ -250,8 +238,8 @@
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/IntanMSGUI/convert_position.py" />
         <option value="$PROJECT_DIR$/core/batch_functions.py" />
         <option value="$USER_HOME$/Google Drive/CUMC/Code/Python/Notebooks/IntanMSGUI/mdaSort.py" />
-        <option value="$PROJECT_DIR$/core/intan_rhd_functions.py" />
         <option value="$PROJECT_DIR$/core/mdaSort.py" />
+        <option value="$PROJECT_DIR$/core/intan_rhd_functions.py" />
       </list>
     </option>
   </component>
@@ -844,43 +832,14 @@
     <entry file="file://$PROJECT_DIR$/core/eeg_conversion.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="491">
-          <caret line="442" column="81" lean-forward="true" selection-start-line="442" selection-start-column="81" selection-end-line="442" selection-end-column="81" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/intan_rhd_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="31" column="23" lean-forward="true" selection-start-line="31" selection-start-column="23" selection-end-line="31" selection-end-column="23" />
-          <folding>
-            <element signature="e#3826#5308#0" />
-            <element signature="e#5360#5714#0" />
-            <element signature="e#5759#6572#0" />
-            <element signature="e#6780#8826#0" />
-            <element signature="e#8860#15618#0" />
-            <element signature="e#15653#16451#0" />
-            <element signature="e#16517#16831#0" />
-            <element signature="e#16863#23503#0" />
-            <element signature="e#23557#24676#0" />
-            <element signature="e#24748#25133#0" />
-            <element signature="e#25215#27419#0" />
-            <element signature="e#27507#27901#0" />
-            <element signature="e#27986#28350#0" />
-            <element signature="e#28487#33613#0" />
-            <element signature="e#33678#34868#0" />
-            <element signature="e#34898#35592#0" />
-            <element signature="e#35649#39348#0" />
-            <element signature="e#39401#41610#0" />
-            <element signature="e#41664#42523#0" />
-            <element signature="e#42566#45454#0" />
-          </folding>
+          <caret line="442" column="81" selection-start-line="442" selection-start-column="81" selection-end-line="442" selection-end-column="81" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1069">
-          <caret line="232" column="57" lean-forward="true" selection-start-line="232" selection-start-column="57" selection-end-line="232" selection-end-column="57" />
+          <caret line="232" column="57" selection-start-line="232" selection-start-column="57" selection-end-line="232" selection-end-column="57" />
           <folding>
             <element signature="e#0#26#0" expanded="true" />
           </folding>
@@ -897,7 +856,7 @@
     <entry file="file://$PROJECT_DIR$/core/batch_functions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="306">
-          <caret line="18" column="67" lean-forward="true" selection-start-line="18" selection-start-column="67" selection-end-line="18" selection-end-column="67" />
+          <caret line="18" column="67" selection-start-line="18" selection-start-column="67" selection-end-line="18" selection-end-column="67" />
           <folding>
             <element signature="e#0#25#0" expanded="true" />
           </folding>
@@ -906,10 +865,39 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/mdaSort.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-155">
-          <caret line="338" column="25" selection-start-line="338" selection-start-column="8" selection-end-line="338" selection-end-column="25" />
+        <state relative-caret-position="321">
+          <caret line="366" column="39" selection-start-line="366" selection-start-column="39" selection-end-line="366" selection-end-column="39" />
           <folding>
             <element signature="e#0#43#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/intan_rhd_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="680">
+          <caret line="627" lean-forward="true" selection-start-line="627" selection-end-line="627" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#3826#5308#0" />
+            <element signature="e#5360#5714#0" />
+            <element signature="e#5759#6572#0" />
+            <element signature="e#6780#8826#0" />
+            <element signature="e#8860#15618#0" />
+            <element signature="e#15653#16451#0" />
+            <element signature="e#16517#16831#0" />
+            <element signature="e#16863#23503#0" />
+            <element signature="e#23557#24676#0" />
+            <element signature="e#24748#25133#0" />
+            <element signature="e#27507#27901#0" />
+            <element signature="e#27986#28350#0" />
+            <element signature="e#28487#33613#0" />
+            <element signature="e#33678#34868#0" />
+            <element signature="e#34898#35592#0" />
+            <element signature="e#35649#39348#0" />
+            <element signature="e#39401#41610#0" />
+            <element signature="e#41664#42523#0" />
+            <element signature="e#42566#45454#0" />
           </folding>
         </state>
       </provider>

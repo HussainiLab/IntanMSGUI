@@ -214,7 +214,7 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
                     write_list.append(struct.pack('>i', sample_num))
 
                     write_list.append(struct.pack('>8h', int(np.rint(positions[sample_num, 0])),
-                                                  int(np.rint(positions[sample_num, 1])), x2, y2, numpix1,
+                                                  -int(np.rint(positions[sample_num, 1])), x2, y2, numpix1,
                                                   numpix2, total_pix, unused))
 
             write_list.append(bytes('\r\ndata_end\r\n', 'utf-8'))

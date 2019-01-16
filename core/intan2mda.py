@@ -412,7 +412,4 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
 
         _writemda(data, mda_filename, 'int16')
 
-    if duration is None:
-        pass
-
-    return mda_filenames, duration
+    return duration

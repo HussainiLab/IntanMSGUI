@@ -449,7 +449,8 @@ def write_dummy_pos(position_file, session_parameters):
         f.writelines(write_list)
 
 
-def convert_position(session_files, position_filename, positionSampleFreq, output_basename, self=None):
+def convert_position(session_files, position_filename, positionSampleFreq, output_basename, sort_duration,
+                     self=None):
 
     if not os.path.exists(position_filename):
 
@@ -466,15 +467,38 @@ def convert_position(session_files, position_filename, positionSampleFreq, outpu
 
     else:
 
-        msg = '[%s %s]: The following position file already exists: %s!' % \
-              (str(datetime.datetime.now().date()),
-               str(datetime.datetime.now().time())[:8], position_filename)
+        converted_pos_duration = get_position_duration(position_filename)
 
-        if self is None:
-            print(msg)
+        if converted_pos_duration != sort_duration:
+
+            msg = '[%s %s]: The following position file already existed, but has wrong duration: %s!' % \
+                  (str(datetime.datetime.now().date()),
+                   str(datetime.datetime.now().time())[:8], position_filename)
+
+            if self is None:
+                print(msg)
+            else:
+                self.LogAppend.myGUI_signal_str.emit(msg)
+
+            rewrite_pos(session_files, positionSampleFreq, self=self)
         else:
-            self.LogAppend.myGUI_signal_str.emit(msg)
+            msg = '[%s %s]: The following position file already exists: %s!' % \
+                  (str(datetime.datetime.now().date()),
+                   str(datetime.datetime.now().time())[:8], position_filename)
+
+            if self is None:
+                print(msg)
+            else:
+                self.LogAppend.myGUI_signal_str.emit(msg)
 
     output_pos_filename = '%s.pos' % output_basename
     if not os.path.exists(output_pos_filename):
         shutil.copy(position_filename, output_pos_filename)
+
+
+def get_position_duration(position_filename):
+    with open(position_filename, 'rb+') as f:  # opening the .pos file
+        for line in f:
+            if 'duration' in str(line):
+                duration = int(line.decode(encoding='UTF-8')[len('duration '):])
+    return duration

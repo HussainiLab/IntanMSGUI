@@ -15,7 +15,7 @@ from core.rhd_utils import tetrode_map
 from core.intan_rhd_functions import read_header, get_probe_name
 
 
-def validate_session(session_files, output_basename, self=None):
+def validate_session(session_files, output_basename, convert_channels, self=None):
     """
     This will return an output of True if you should continue to convert this session,
     otherwise it is convertable.
@@ -23,7 +23,7 @@ def validate_session(session_files, output_basename, self=None):
 
     output_basename = os.path.basename(output_basename)
 
-    # file_header = read_header(session_files[0])
+    file_header = read_header(session_files[0])
 
     # get the probe value from the notes
     probe = get_probe_name(session_files[0])
@@ -37,13 +37,13 @@ def validate_session(session_files, output_basename, self=None):
     # first check if this session has the necessary files
 
     pos_filename = '%s.pos' % os.path.join(directory, output_basename)
-    # cues_filename = '%s_cues.json' % os.path.join(directory, tint_basename)
+    cues_filename = '%s_cues.json' % os.path.join(directory, tint_basename)
     raw_pos_filename = '%s_raw_position.txt' % os.path.join(directory, tint_basename)
 
     # check if there is a position file
 
     if not os.path.exists(pos_filename):
-        # there is no position filename, check if there is a raw position file to 
+        # there is no position filename, check if there is a raw position file to
         # create a position file with.
 
         if not os.path.exists(raw_pos_filename):
@@ -107,23 +107,6 @@ def validate_session(session_files, output_basename, self=None):
             # then the file has not already been sorted, return True
             return True
 
-        # getting the eeg and egf filenames for later
-        tetrode = int(mda_basename[find_sub(mda_basename, '_')[-1] + 2:])
-        tetrode_channels = probe_map[tetrode]
-
-        for i in np.arange(len(tetrode_channels)):
-            eeg_number = tetrode_channels[i]
-
-            if eeg_number == 1:
-                eeg_filename = os.path.join(directory, output_basename + '.eeg')
-                egf_filename = os.path.join(directory, output_basename + '.egf')
-            else:
-                eeg_filename = os.path.join(directory, output_basename + '.eeg%d' % (eeg_number))
-                egf_filename = os.path.join(directory, output_basename + '.egf%d' % (eeg_number))
-
-            eeg_filenames.append(eeg_filename)
-            egf_filenames.append(egf_filename)
-
     # already checked if position file exists so we don't need to do that
 
     # check if tetrodes/cut files have been converted already
@@ -152,6 +135,9 @@ def validate_session(session_files, output_basename, self=None):
     if not os.path.exists(set_filename):
         return True
 
+    # get eeg and egf files + channels to convert
+    eeg_filenames, egf_filenames, eeg_channels = get_eeg_channels(probe_map, directory, output_basename,
+                                                                  channels=convert_channels)
     # check if the .eeg/.egf files have been created yet
     for file in eeg_filenames:
         if not os.path.exists(file):
@@ -206,14 +192,14 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
         Fs = int(read_header(session_files[0])['sample_rate'])
 
     # convert the intan data to .mda so they can be analyzed
-    mda_filenames, duration = intan2mda(session_files, interpolation=interpolation,
-                                        notch_filter=notch_filter,
-                                        flip_sign=flip_sign,
-                                        remove_common_mode=remove_common_mode,
-                                        common_mode_method=common_mode_method,
-                                        common_mode_channels=common_mode_channels,
-                                        desired_Fs=desired_Fs,
-                                        self=self)
+    sort_duration = intan2mda(session_files, interpolation=interpolation,
+                              notch_filter=notch_filter,
+                              flip_sign=flip_sign,
+                              remove_common_mode=remove_common_mode,
+                              common_mode_method=common_mode_method,
+                              common_mode_channels=common_mode_channels,
+                              desired_Fs=desired_Fs,
+                              self=self)
 
     # sort the mda data
     sort_intan(directory, tint_fullpath, Fs, whiten=whiten, detect_interval=detect_interval,
@@ -224,7 +210,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                clip_size=clip_size, self=self)
 
     # create positions
-    convert_position(session_files, pos_filename, positionSampleFreq, output_basename, self=self)
+    convert_position(session_files, pos_filename, positionSampleFreq, output_basename, sort_duration, self=self)
 
     # at this point we can create the tetrode and cut file (without the tetrode header), we need some extra
     # parameters for the header so I will do this first to create the clipping (and thus the gain) values that will

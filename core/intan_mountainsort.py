@@ -86,7 +86,8 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
         mda_basename = os.path.splitext(file)[0]
         mda_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
 
-        masked_out_fname = mda_basename + '_masked.mda'
+        # masked filename no longer required
+        # masked_out_fname = mda_basename + '_masked.mda'
         firings_out = mda_basename + '_firings.mda'
         filt_out_fname = mda_basename + '_filt.mda'
         pre_out_fname = mda_basename + '_pre.mda'
@@ -94,8 +95,10 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
 
         # check if these outputs have already been created, skip if they have
         existing_files = 0
-        output_files = [masked_out_fname, filt_out_fname, firings_out,
-                        pre_out_fname, metrics_out_fname]
+        output_files = [filt_out_fname, firings_out,
+                        pre_out_fname, metrics_out_fname,
+                        # masked_out_fname,
+                        ]
         for outfile in output_files:
             if os.path.exists(outfile):
                 existing_files += 1
@@ -155,7 +158,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                                detect_sign=0, detect_threshold=3, freq_min=300, freq_max=6000,
                                mask_threshold=6,
                                flip_sign=False, software_rereference=True, reref_method='sd',
-                               reref_channels=None, masked_chunk_size=None,
+                               reref_channels=None, masked_chunk_size=None, mask=True,
                                mask_num_write_chunks=100,
                                clip_size=50, notch_filter=False, desired_Fs=48e3,
                                positionSampleFreq=50,
@@ -261,6 +264,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                detect_sign=detect_sign,
                detect_threshold=detect_threshold, freq_min=freq_min, freq_max=freq_max,
                mask_threshold=mask_threshold,
+               mask=mask,
                masked_chunk_size=masked_chunk_size, mask_num_write_chunks=mask_num_write_chunks,
                clip_size=clip_size, self=self)
 
@@ -275,6 +279,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                             post_spike_samples=post_spike_samples, detect_sign=detect_sign,
                             remove_spike_percentage=remove_spike_percentage,
                             remove_outliers=remove_outliers, clip_method=clip_method,
+                            mask=mask,
                             clip_scalar=clip_scalar,
                             self=self)
 

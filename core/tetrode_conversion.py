@@ -143,7 +143,7 @@ def write_tetrode_data(filepath, spike_times, spike_data, samples_per_spike=50, 
         f.writelines(write_order)
 
 
-def get_clip_values(data_masked, spike_times, spike_channel, remove_spike_percentage=1,
+def get_clip_values(data_out, spike_times, spike_channel, remove_spike_percentage=1,
                     detect_sign=0, remove_outliers=False, method='max', clip_scalar=1):
     """
 
@@ -152,11 +152,11 @@ def get_clip_values(data_masked, spike_times, spike_channel, remove_spike_percen
     """
 
     # ----------- calculate the peaks for each cell -------------
-    # peak_values = np.sort(data_masked[:, spike_times].flatten())
+    # peak_values = np.sort(data_out[:, spike_times].flatten())
     peak_values = np.array([])
     for chan in np.unique(spike_channel):
         chan_bool = np.where(spike_channel == chan)[0]
-        chan_spikes = data_masked[chan - 1, spike_times[chan_bool]]
+        chan_spikes = data_out[chan - 1, spike_times[chan_bool]]
 
         if detect_sign == 1:
             # just make sure that no spike times with negative peaks leak in
@@ -204,7 +204,7 @@ def get_clip_values(data_masked, spike_times, spike_channel, remove_spike_percen
     return clip_scalar * clip_value
 
 
-def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, post_spike_samples=40, detect_sign=0,
+def convert_tetrode(filt_filename, data_filename, output_basename, Fs, pre_spike_samples=10, post_spike_samples=40, detect_sign=0,
                     remove_spike_percentage=1,  remove_outliers=False, clip_method='max', clip_scalar=1, self=None):
     """
     convert_tetrode will take an input filename that was processed and sorted via MountainSort
@@ -266,7 +266,7 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
         tetrode_skipped = True
 
     else:
-        masked_out_fname = mda_basename + '_masked.mda'
+        # masked_out_fname = mda_basename + '_masked.mda'
         firings_out = mda_basename + '_firings.mda'
 
         # ----------- reading in mountainsort spike data ------------------------- #
@@ -302,37 +302,43 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
         cell_numbers = A[2, :].astype(int)
         # ------------- creating clips ---------------------- #
 
-        if not os.path.exists(masked_out_fname):
+        # if not os.path.exists(masked_out_fname):
+        if not os.path.exists(data_filename):
 
-            msg = '[%s %s]: The following masked data filename does not exist: %s, skipping!' % (
+            msg = '[%s %s]: The following data filename does not exist: %s, skipping!' % (
                 str(datetime.datetime.now().date()),
                 str(datetime.datetime.now().time())[
-                :8], masked_out_fname)
+                :8],  # masked_out_fname
+                data_filename
+            )
 
             if self is None:
                 print(msg)
             else:
                 self.LogAppend.myGUI_signal_str.emit(msg)
 
-            raise FileNotFoundError('Could not find the following masked data: %s' % masked_out_fname)
+            raise FileNotFoundError('Could not find the following data filename: %s' % data_filename)
 
         msg = '[%s %s]: Reading the spike data from the following file: %s' % (
             str(datetime.datetime.now().date()),
             str(datetime.datetime.now().time())[
-            :8], masked_out_fname)
+            :8], data_filename)
 
         if self is None:
             print(msg)
         else:
             self.LogAppend.myGUI_signal_str.emit(msg)
 
-        # read in masked data
-        data_masked, _ = readMDA(masked_out_fname)
+        # read in the output data
+        # data_masked, _ = readMDA(masked_out_fname)
+
+        data_output, _ = readMDA(data_filename)
 
         clip_size = pre_spike + post_spike
 
         # max sample index
-        max_n = data_masked.shape[1] - 1
+        # max_n = data_masked.shape[1] - 1
+        max_n = data_output.shape[1] - 1
 
         spike_bool = np.where((spike_times + post_spike < max_n) * (spike_times - pre_spike >= 0))[0]
 
@@ -350,10 +356,12 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
         # converting the tetrode data from 16bit at 192gain for 2.45 v-swing to 1500mV half v-swing
 
         # convert data to uV
-        data_masked = data_masked * intan_scalar()
+        # data_masked = data_masked * intan_scalar()
+        data_output = data_output * intan_scalar()
 
         # the value representing the half bit range in uV (128 bit value represents this in uV)
-        channel_clip = get_clip_values(data_masked, spike_times, spike_channel, detect_sign=detect_sign,
+        channel_clip = get_clip_values(data_output,
+                                       spike_times, spike_channel, detect_sign=detect_sign,
                                        remove_spike_percentage=remove_spike_percentage,
                                        method=clip_method, clip_scalar=clip_scalar,
                                        remove_outliers=remove_outliers)
@@ -376,7 +384,8 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
 
         # ------------------- getting spike times --------------------------------- #
 
-        cell_data = data_masked[:, clip_indices]
+        # cell_data = data_masked[:, clip_indices]
+        cell_data = data_output[:, clip_indices]
 
         # converting data to 8 bit with a max half scale of 1500mV
         cell_data = (cell_data / channel_scalar8s).astype(int)
@@ -404,9 +413,8 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
             with open(clip_filename, 'w') as f:
                 json.dump({tetrode: tetrode_clip}, f)
 
-        data_masked = None
-
-        # Fs = int(get_setfile_parameter('rawRate', set_filename))
+        # data_masked = None
+        data_output = None
 
         cell_times = (spike_times * (96000 / Fs)).astype(
             int)  # need to convert to the 96000 Hz timebase that Tint has, time occurs at the 12th value
@@ -455,17 +463,19 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
 
         if tetrode_skipped:
             firings_out = mda_basename + '_firings.mda'
-            masked_out_fname = mda_basename + '_masked.mda'
+            # masked_out_fname = mda_basename + '_masked.mda'
 
             A, _ = readMDA(firings_out)
 
             spike_times = (A[1, :]).astype(int)  # at this stage it is in index values (0-based)
             cell_numbers = A[2, :].astype(int)
 
-            data_masked, _ = readMDA(masked_out_fname)
+            # data_masked, _ = readMDA(masked_out_fname)
+            data_output, _ = readMDA(data_filename)
 
             # max sample index
-            max_n = data_masked.shape[1] - 1
+            # max_n = data_masked.shape[1] - 1
+            max_n = data_output.shape[1] - 1
 
             # making sure now
             spike_bool = np.where((spike_times + post_spike < max_n) * (spike_times - pre_spike >= 0))[0]
@@ -477,7 +487,7 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
 
 
 def batch_basename_tetrodes(directory, tint_basename, output_basename, Fs, pre_spike_samples=10, post_spike_samples=40,
-                            detect_sign=0, remove_spike_percentage=1, remove_outliers=False, clip_scalar=1,
+                            detect_sign=0, remove_spike_percentage=1, remove_outliers=False, mask=True, clip_scalar=1,
                             clip_method='max', self=None):
 
     # find the filenames that were used by MountainSort to be sorted.
@@ -486,7 +496,16 @@ def batch_basename_tetrodes(directory, tint_basename, output_basename, Fs, pre_s
 
     for file in filt_fnames:
         try:
-            convert_tetrode(file, output_basename, Fs, pre_spike_samples=pre_spike_samples,
+            if mask:
+                # previously I made it so you only have the option of using the masked data as the output
+                mda_basename = os.path.splitext(file)[0]
+                mda_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
+                data_filename = mda_basename + '_masked.mda'
+            else:
+                # if the user decides not to use the masked value, the filtered data will be used.
+                data_filename = file
+
+            convert_tetrode(file, data_filename, output_basename, Fs, pre_spike_samples=pre_spike_samples,
                             post_spike_samples=post_spike_samples, detect_sign=detect_sign,
                             remove_spike_percentage=remove_spike_percentage,  remove_outliers=remove_outliers,
                             clip_method=clip_method,

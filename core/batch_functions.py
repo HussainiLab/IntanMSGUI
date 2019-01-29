@@ -45,6 +45,9 @@ eeg_channels = 'first'  # this will save the 1st channel as an .eeg in each tetr
 
 # MASK
 # The amount of indices that you will segment for masking artifacts. if you leave as None it will
+# mask = True
+mask = False
+
 masked_chunk_size = None
 # use a value of Fs/10 or Fs/20, I forget
 
@@ -361,6 +364,7 @@ def BatchAnalyze(main_window, directory):
                                                    software_rereference=software_rereference,
                                                    reref_method=reref_method,
                                                    reref_channels=reref_channels,
+                                                   mask=mask,
                                                    masked_chunk_size=masked_chunk_size,
                                                    mask_num_write_chunks=mask_num_write_chunks,
                                                    clip_size=clip_size,

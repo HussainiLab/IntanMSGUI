@@ -94,14 +94,6 @@ def get_session_parameters(tint_basename, session_files, Fs, pre_spike_samples=1
 
             session_parameters['gain'] = channel_gains
 
-        '''
-        duration = 0
-        for file in session_files:
-            duration += f_intan.rhd_duration(file)[0]
-        
-        session_parameters['duration'] = math.floor(duration)
-        '''
-
         session_parameters['pretrigSamps'] = pre_spike_samples
         session_parameters['spikeLockout'] = post_spike_samples
 

@@ -21,9 +21,11 @@ def compute_ranking(values, mode='descending'):
     return ranking, order
 
 
-def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
+def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
     """
-    This will remove the common noise that exists across all the channels.
+    This will get channel data for software re-referencing. Typically this will remove common data between the different
+    channels, such as that which could be caused from motion artifact. Likely you will want to choose a channel with
+    small amounts of variation and low spiking activity.
 
     if mode is 'sd':
         In the common mode removal process we will take the signal with the smallest standard deviation
@@ -33,7 +35,7 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
 
     if mode is 'avg':
         In the common mode removal process we will take the average of all the channels and use this value to subtract
-        the commond signal from each of the channels.
+        the common signal from each of the channels.
     """
     # keep track of the channels
     channel_list = []
@@ -64,11 +66,13 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
                     data = data[:, start_index:stop_index]
 
             if mode == 'sd':
+                # calculate standard deviations for each channel as a measure of how quiet the channel is
                 if len(channel_std) == 0:
                     channel_std = np.std(data, axis=1)
                 else:
                     channel_std = np.r_[channel_std, np.std(data, axis=1)]
             elif mode == 'avg':
+                # calculate the averages for the channel, we'll sum them here and divide by n_channels later
                 num_channels += data.shape[0]
 
                 if len(channel_avg) == 0:
@@ -95,9 +99,9 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
 
             # find the channels with the two lowest standard deviations. The lowest will be subtracted from all the
             # other channels and the 2nd lowest will be subtracted from the channel with the 1st lowest.
-            mode_channels = channel_list[rank[:2]]
+            reref_channels = channel_list[rank[:2]]
 
-            data, _, data_digital_in = get_intan_data(session_files, mode_channels, verbose=None)
+            data, _, data_digital_in = get_intan_data(session_files, reref_channels, verbose=None)
 
             digital_input = False
             # check if there is a start and stop index from the recorded digital events
@@ -136,7 +140,7 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
 
                     data = data[:, :n]
 
-            return data, mode_channels, channel_list
+            return data, reref_channels
 
         elif mode == 'avg':
 
@@ -192,7 +196,8 @@ def get_common_mode(session_files, probe_map, channel=None, mode='sd'):
 
 
 def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=True, notch_freq=60,
-              flip_sign=True, remove_common_mode=True, common_mode_method='sd', common_mode_channels=None, self=None):
+              flip_sign=True, software_rereference=False, reref_channels=None, reref_data=None,
+              reref_method=None, self=None):
     """
         This function convert the intan ata into the .mda format that MountainSort requires.
 
@@ -255,27 +260,34 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
             self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
-        return [], []
+        # getting the duration
+        for tetrode, tetrode_channels in sorted(probe_map.items()):
+            data, t_intan, data_digital_in = get_intan_data(session_files, tetrode_channels, tetrode, self,
+                                                            verbose=True)
 
-    if remove_common_mode:
+            digital_inputs = False
+            if file_header['num_board_dig_in_channels'] > 0:
+                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in)
 
-        msg = '[%s %s]: Finding common mode data!' % \
-              (str(datetime.datetime.now().date()),
-               str(datetime.datetime.now().time())[:8])
-        if self:
-            self.LogAppend.myGUI_signal_str.emit(msg)
-        else:
-            print(msg)
+                if start_index is not None and stop_index is not None:
+                    duration = np.floor((stop_index - start_index) / Fs_intan)
+                    digital_inputs = True
 
-        if common_mode_channels is None:
-            if common_mode_method == 'sd':
-                common_mode_data, mode_channels = get_common_mode(session_files, probe_map, mode=common_mode_method)
-            elif common_mode_method == 'avg':
-                common_mode_data = get_common_mode(session_files, probe_map, mode=common_mode_method)
-        else:
-            common_mode_data, mode_channels = get_common_mode(session_files, probe_map, channel=common_mode_channels)
+            if not digital_inputs:
+                duration = len(t_intan) / Fs_intan  # duration value that would be reported in the .pos/.set settings
+                if type(duration) == np.ndarray:
+                    duration = duration[0]  # the following is_integer() method does not work in an ndarray
 
-    # find the common mode
+                if not duration.is_integer():
+                    '''
+                    Tint needs integer values in the duration spot of the .pos file,
+                    so we will round down if not an integer. This will likely be fixed
+                    if the start and stop indices were found via the digital inputs. However 
+                    if that failed, or if there is no digital input to sync with the behavior
+                    we will implement this if statement.
+                    '''
+                    duration = math.floor(duration)  # the new integer duration value
+            return duration
 
     for tetrode, tetrode_channels in sorted(probe_map.items()):
 
@@ -347,33 +359,47 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
                 data = data[:, :n]
                 t_intan = t_intan[:n] - t_intan[0]
 
-        if remove_common_mode:
+        # software re-referencing
+        if software_rereference:
+            tetrode_channels = np.asarray(tetrode_channels)
+            reref_channels = np.asarray(reref_channels)
+            if reref_method == 'sd':
+                # with this remove common mode process we will take the signal with the smallest standard deviation
+                # and subtract it from all the other channels. We will also find the signal with the 2nd smallest
+                # std and remove this channel from the channel with the smallest standard deviation
+                if reref_channels[0] in tetrode_channels:
+                    # find if the re-referencing channel is in this tetrode
+                    channel_bool = np.where(tetrode_channels == reref_channels[0])[0]
+                    # subtract the alternate channel from this
+                    data[channel_bool, :] -= reref_data[1, :]
 
-            if common_mode_channels is None:
-                if common_mode_method == 'sd' or common_mode_channels is not None:
-                    # with this remove common mode process we will take the signal with the smallest standard deviation
-                    # and subtract it from all the other channels. We will also find the signal with the 2nd smallest
-                    # std and remove this channel from the channel with the smallest standard deviation
-                    if mode_channels[0] in tetrode_channels:
-                        channel_bool = np.where(tetrode_channels == mode_channels[0])[0]
-                        data[channel_bool, :] -= common_mode_data[1, :]
+                # subtract any channels that are not equal to the smallest SD channel
+                channel_bool = np.where(tetrode_channels != reref_channels[0])[0]
+                data[channel_bool, :] -= reref_data[0, :]
 
-                    channel_bool = np.where(tetrode_channels != mode_channels[0])[0]
-                    data[channel_bool, :] -= common_mode_data[0, :]
+            elif reref_method == 'avg':
+                # calculate the avg of the channels and then subtract that from each of the channels
+                data -= reref_data.astype(np.int32)
 
-                elif common_mode_method == 'avg':
-                    # calculate the avg of the channels and then subtract that from each of the channels
-                    data -= common_mode_data.astype(np.int32)
-            else:
-                if common_mode_data.shape[0] == 2:
-                    if mode_channels[0] in tetrode_channels:
-                        channel_bool = np.where(tetrode_channels == mode_channels[0])[0]
-                        data[channel_bool, :] -= common_mode_data[1, :]
+            elif reref_method is None:
+                # then we gave the channels
+                if len(reref_channels) == 2:
+                    if reref_channels[0] in tetrode_channels:
+                        # find if the re-referencing channel is in this tetrode
+                        channel_bool = np.where(tetrode_channels == reref_channels[0])[0]
+                        # subtract the alternate ref channel from this
+                        data[channel_bool, :] -= reref_data[1, :]
 
-                    channel_bool = np.where(tetrode_channels != mode_channels[0])[0]
-                    data[channel_bool, :] -= common_mode_data[0, :]
-                else:
-                    data -= common_mode_data.astype(np.int32)
+                    # subtract any channels that are not equal to the primary reference channel
+                    channel_bool = np.where(tetrode_channels != reref_channels[0])[0]
+                    data[channel_bool, :] -= reref_data[0, :]
+                elif len(reref_channels) == 1:
+                    # there is only one reference channel given, we will just use this to subtract from all
+                    # the other channels. We will leave the reference channel alone though
+
+                    # subtract any channels that are not equal to the reference channel
+                    channel_bool = np.where(tetrode_channels != reref_channels[0])[0]
+                    data[channel_bool, :] -= reref_data[0, :]
 
         if notch_filter:
             data = notch_filt(data, Fs_intan, freq=notch_freq)

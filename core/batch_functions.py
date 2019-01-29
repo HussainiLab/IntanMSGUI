@@ -1,9 +1,11 @@
 import os, datetime, time
-from PyQt5 import QtGui
-from core.intan_mountainsort import convert_intan_mountainsort
+from PyQt5 import QtWidgets
+from core.intan_mountainsort import convert_intan_mountainsort, validate_session
 import json
 from core.utils import find_sub
-from core.intan_rhd_functions import find_basename_files
+from core.rhd_utils import tetrode_map
+from core.intan_rhd_functions import find_basename_files, get_probe_name
+import numpy as np
 
 # TODO: Add Parameters officially
 
@@ -18,8 +20,8 @@ whiten = 'true'  # if you want to whiten or not, 'true' or 'false', lower case l
 # THRESHOLD
 flip_sign = True  # if you want to flip the signal (multiply by -1)
 
-detect_interval = 10  # it will split up the data into segments of this value and find a peak/trough for each segment
-detect_sign = 1  # 0 = positive and negative peaks, 1 = positive peaks, -1 = negative peaks
+detect_interval = 50  # it will split up the data into segments of this value and find a peak/trough for each segment
+detect_sign = 0  # 0 = positive and negative peaks, 1 = positive peaks, -1 = negative peaks
 
 if whiten == 'true':
     # the threshold of the data, if whitened, data is normalized to standard deviations, so a value of 3
@@ -54,18 +56,22 @@ mask_threshold = 6  # number of standard deviations the Root of the Sum of the S
 # segment to zero.
 
 # COMMON MODE PARAMETERS (essentially software re-referencing)
-# Common Mode: the common signal between all channels (or multiple channels)
-remove_common_mode = True  # if you want to remove the common signal (mean values)
+# software re-ref PARAMETERS (essentially software re-referencing)
+software_rereference = True  # if you want to remove the common signal (mean values)
 # between channels, set to True, otherwise False
 
-# common_mode_channels=None
-# methods of which to remove signal, 'sd' will caculate the standard deviation of every channel
-common_mode_method = 'sd'
-# and choose the channels with the two lowest values and remove those signals from the rest (the 2nd lowest
-# will be removed from the 1st lowest). Somewhat like what you guys do visually in Axona.
+# reref_method=None
+reref_method = 'sd'  # methods of which to remove signal, 'sd' will caculate the standard deviation of every channel
+# and choose the channels with the two lowest values and remove those signals from the rest (the 2nd lowest will be
+# removed from the 1st lowest). Somewhat like what you guys do visually in Axona.
 
-common_mode_channels = [16, 9]  # if you wanted to just say which channels to subtract from the rest, do it here,
-# common_mode_channels = None
+reref_channels = 'auto'  # below we have a dictionary of previously chosen values
+# depending on the mouse
+# if set to auto, it will choose those values.
+
+# reref_channels = [16, 9]  # if you wanted to just say which
+# channels to subtract from the rest, do it here,
+# reref_channels = None
 # it will override the automatic stuff. Essentially look through .set files
 
 clip_size = 50  # samples per spike, default 50
@@ -76,8 +82,13 @@ notch_filter = True
 
 positionSampleFreq = 50  # sampling frequency of position, default 50
 
-pre_spike_samples = 10  # number of samples pre-threshold samples to take, default 10
-post_spike_samples = 40  # number of post threshold samples to take, default 40
+pre_spike_samples = 15  # number of samples pre-threshold samples to take, default 10
+post_spike_samples = 35  # number of post threshold samples to take, default 40
+
+if pre_spike_samples + post_spike_samples != clip_size:
+    raise ValueError("the pre (%d) and post (%d) spike samples need to add up to the clip_size: %d." % (pre_spike_samples,
+                                                                                                        post_spike_samples,
+                                                                                                        int(clip_size)))
 
 # Axona Artifact Rejection Criteria, I'd just leave these. They are in the manual
 rejthreshtail = 43  # I think, the latter 20-30% can't be above this value ( I think)
@@ -93,29 +104,70 @@ remove_spike_percentage = 5  # percent value, default 1, haven't experimented mu
 remove_method = 'max'  # this will find the max of the peak values (or min if it's negative)
 # and set that as the clipping value
 
-clip_scalar = 1  # this will multiply the clipping value found via the remove_method method,
+clip_scalar = 1.05  # this will multiply the clipping value found via the remove_method method,
 # and then scale by this value.
 
 # miscellaneous
 # self = None  # this is code jargin for object oriented programming, mainly used for GUI's, we don't need this
 # just needs to be set in the function so I have it set to None.
 
+axona_refs = {
+    'b6_august_18_1': [4, 3],
+    'b6_august_18_2': [4, 3],
+    'j20_sleep_1': [4, 3],
+    'j20_sleep_2': [4, 3],
+    'b6_sep_18_1': [4, 3],
+}
+
 # END PARAMETERS
+
+
+def tintRef2intan(tint_refs, tetrode_map, probe):
+    """
+    Given a list of tint_references (0-based index), it will return the channel
+    (1-based indexing) that this tint channel represents in Intan.
+
+    Tint is 0-based because that is what comes out of Tint (in the set file).
+    Intan is 1-based because it's just easy to think about a 16 channel probe
+    as having channels from 1-16.
+    """
+    probe_map = tetrode_map[probe]
+
+    tetrode_channels = []
+    for key in sorted(probe_map.keys()):
+        tetrode_channels.extend(probe_map[key])
+
+    tetrode_channels = np.asarray(tetrode_channels)
+
+    return list(tetrode_channels[tint_refs])
+
+
+def intanRef2tint(intan_refs, tetrode_map, probe):
+    """
+    Given a list of intan references (1-based index), it will return the tinta channel
+    (0-based indexing) that this intan channel represents.
+
+    Tint is 0-based because that is what comes out of Tint (in the set file).
+    Intan is 1-based because it's just easy to think about a 16 channel probe
+    as having channels from 1-16.
+    """
+    probe_map = tetrode_map[probe]
+
+    tetrode_channels = []
+    for key in sorted(probe_map.keys()):
+        tetrode_channels.extend(probe_map[key])
+
+    tetrode_channels = np.asarray(tetrode_channels)
+
+    tint_refs = []
+    for channel in intan_refs:
+        tint_refs.append(np.where(tetrode_channels == channel)[0][0])
+
+    return tint_refs
 
 
 def BatchAnalyze(main_window, directory):
     # ------- making a function that runs the entire GUI ----------
-    '''
-    def __init__(self, main_window, directory):
-        QtCore.QThread.__init__(self)
-        self.main_window = main_window
-        self.directory = directory
-
-    def __del__(self):
-        self.wait()
-
-    def run(self):
-    '''
 
     # checks if the settings are appropriate to run analysis
     # klusta_ready = check_klusta_ready(main_window, directory)
@@ -159,7 +211,7 @@ def BatchAnalyze(main_window, directory):
                 while main_window.choice == '':
                     time.sleep(0.2)
 
-                if main_window.choice == QtGui.QMessageBox.Abort:
+                if main_window.choice == QtWidgets.QMessageBox.Abort:
                     main_window.stopBatch()
                     return
 
@@ -178,7 +230,6 @@ def BatchAnalyze(main_window, directory):
             json.dump(settings, filename)
 
         # ----------- cycle through each file  ------------------------------------------
-        # for sub_directory in sub_directories:  # finding all the folders within the directory
 
         while main_window.directory_queue.topLevelItemCount() > 0:
 
@@ -196,20 +247,15 @@ def BatchAnalyze(main_window, directory):
                     main_window.RemoveQueueItem.myGUI_signal_str.emit(str(0))
                     while not main_window.top_level_taken:
                         time.sleep(0.1)
-                    # main_window.directory_queue.takeTopLevelItem(0)
                     continue
 
             while main_window.directory_item.childCount() != 0:
 
-                # set_file = []
-                # for child_count in range(main_window.directory_item.childCount()):
-                #     set_file.append(main_window.directory_item.child(child_count).data(0, 0))
                 main_window.current_session = main_window.directory_item.child(0).data(0, 0)
                 main_window.child_data_taken = False
                 main_window.RemoveSessionData.myGUI_signal_str.emit(str(0))
                 while not main_window.child_data_taken:
                     time.sleep(0.1)
-                # main_window.directory_item.takeChild(0).data(0, 0)
 
                 sub_directory = main_window.directory_item.data(0, 0)
 
@@ -226,8 +272,6 @@ def BatchAnalyze(main_window, directory):
                     main_window.RemoveQueueItem.myGUI_signal_str.emit(str(0))
                     while not main_window.top_level_taken:
                         time.sleep(0.1)
-                    # main_window.directory_queue.takeTopLevelItem(0)
-
                 try:
 
                     if not os.path.exists(os.path.join(directory, sub_directory)):
@@ -235,18 +279,33 @@ def BatchAnalyze(main_window, directory):
                         main_window.RemoveQueueItem.myGUI_signal_str.emit(str(0))
                         while not main_window.top_level_taken:
                             time.sleep(0.1)
-                        # main_window.directory_queue.takeTopLevelItem(0)
                         continue
                     else:
+
                         analysis_directory = os.path.join(directory, main_window.current_subdirectory)
 
                         rhd_session_file = main_window.current_session
                         rhd_basename = rhd_session_file[:find_sub(rhd_session_file, '_')[-2]]
 
-
                         session_files = find_basename_files(rhd_basename, os.path.join(directory, sub_directory))
 
                         rhd_session_fullfile = os.path.join(directory, sub_directory, rhd_session_file + '.rhd')
+
+                        tint_basename = os.path.basename(os.path.splitext(rhd_session_fullfile)[0])
+                        tint_fullpath = os.path.join(analysis_directory, tint_basename)
+                        output_basename = '%s_ms' % tint_fullpath
+                        session_valid = validate_session(rhd_session_fullfile, output_basename, eeg_channels,
+                                                         self=main_window, verbose=False)
+
+                        if not session_valid:
+                            message = '[%s %s]: The following session has already been analyzed: %s' % (
+                                str(datetime.datetime.now().date()),
+                                str(datetime.datetime.now().time())[
+                                :8], os.path.basename(
+                                    tint_fullpath))
+
+                            main_window.LogAppend.myGUI_signal_str.emit(message)
+                            continue
 
                         # find the session with our rhd file in it
                         session_files = [sub_list for sub_list in session_files if rhd_session_fullfile in sub_list][0]
@@ -255,9 +314,25 @@ def BatchAnalyze(main_window, directory):
                             # if there is only one file in the list, the output will not be a list
                             session_files = [session_files]
 
-                        # pre_threshold = main_window.pre_threshold_widget.value()
-                        # post_threshold = main_window.post_threshold_widget.value()
-                        # curated = main_window.curated_cb.isChecked()
+                        probe = get_probe_name(session_files[0])
+
+                        if not main_window.nonbatch:
+                            mouse = os.path.basename(os.path.dirname(analysis_directory))
+                        else:
+                            mouse = os.path.basename(analysis_directory)
+
+                        global reref_channels, axona_refs
+
+                        if mouse not in axona_refs.keys():
+                            for key in axona_refs.keys():
+                                if key in session_files[0]:
+                                    mouse = key
+
+                        if reref_channels == 'auto':
+                            reref_channels = tintRef2intan(axona_refs[mouse],
+                                                           tetrode_map,
+                                                           probe)
+                            print('The following reref_channels were chosen: ', reref_channels)
 
                         whiten = main_window.whiten_cb.isChecked()
                         if whiten:
@@ -266,14 +341,6 @@ def BatchAnalyze(main_window, directory):
                             whiten = 'false'
 
                         detect_sign = main_window.detect_sign
-                        '''
-                        if detect_sign == 'Positive Peaks':
-                            detect_sign = 1
-                        elif detect_sign == 'Negative Peaks':
-                            detect_sign = -1
-                        else:
-                            detect_sign = 0
-                        '''
 
                         detect_threshold = main_window.detect_threshold_widget.value()
                         # version = main_window.version
@@ -291,9 +358,9 @@ def BatchAnalyze(main_window, directory):
                                                    freq_min=freq_min,
                                                    freq_max=freq_max, mask_threshold=mask_threshold,
                                                    flip_sign=flip_sign,
-                                                   remove_common_mode=remove_common_mode,
-                                                   common_mode_method=common_mode_method,
-                                                   common_mode_channels=common_mode_channels,
+                                                   software_rereference=software_rereference,
+                                                   reref_method=reref_method,
+                                                   reref_channels=reref_channels,
                                                    masked_chunk_size=masked_chunk_size,
                                                    mask_num_write_chunks=mask_num_write_chunks,
                                                    clip_size=clip_size,
@@ -310,6 +377,8 @@ def BatchAnalyze(main_window, directory):
                                                    clip_method=remove_method,
                                                    eeg_channels=eeg_channels,
                                                    self=main_window)
+
+                        main_window.analyzed_sessions.append(main_window.current_session)
 
                         main_window.LogAppend.myGUI_signal_str.emit(
                             '[%s %s]: Finished analyzing the following basename: %s!' % (

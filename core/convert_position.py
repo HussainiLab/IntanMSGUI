@@ -6,6 +6,7 @@ import json
 import core.intan_rhd_functions as load_rhd
 from core.utils import session_datetime
 import shutil
+import time
 
 
 def MatlabNumSeq(start, stop, step, exclude=True):
@@ -226,7 +227,7 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
             if self is None:
                 print(msg)
             else:
-                self.mySrc2.myGUI_signal_str.emit(msg)
+                self.LogAppend.myGUI_signal_str.emit(msg)
 
         with open(cue_fname, 'r') as f:
             settings = json.load(f)
@@ -481,6 +482,11 @@ def convert_position(session_files, position_filename, positionSampleFreq, outpu
                 self.LogAppend.myGUI_signal_str.emit(msg)
 
             rewrite_pos(session_files, positionSampleFreq, self=self)
+
+            output_pos_filename = '%s.pos' % output_basename
+            if os.path.exists(output_pos_filename):
+                os.remove(output_pos_filename)
+                time.sleep(0.1)
         else:
             msg = '[%s %s]: The following position file already exists: %s!' % \
                   (str(datetime.datetime.now().date()),

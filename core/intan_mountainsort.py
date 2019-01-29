@@ -5,17 +5,17 @@ import datetime
 
 from core.tetrode_conversion import batch_basename_tetrodes, batch_add_tetrode_headers
 from core.convert_position import convert_position
-from core.eeg_conversion import convert_eeg
+from core.eeg_conversion import convert_eeg, get_eeg_channels
 from core.utils import find_sub
-from core.intan2mda import intan2mda
+from core.intan2mda import intan2mda, get_reref_data
 from core.mdaSort import sort_intan
 from core.set_conversion import convert_setfile
 from core.rhd_utils import tetrode_map
 
-from core.intan_rhd_functions import read_header, get_probe_name
+from core.intan_rhd_functions import read_header, get_probe_name, get_ref_index
 
 
-def validate_session(session_files, output_basename, convert_channels, self=None):
+def validate_session(rhd_basename_file, output_basename, convert_channels, self=None, verbose=True):
     """
     This will return an output of True if you should continue to convert this session,
     otherwise it is convertable.
@@ -23,21 +23,18 @@ def validate_session(session_files, output_basename, convert_channels, self=None
 
     output_basename = os.path.basename(output_basename)
 
-    file_header = read_header(session_files[0])
-
     # get the probe value from the notes
-    probe = get_probe_name(session_files[0])
+    probe = get_probe_name(rhd_basename_file)
 
     probe_map = tetrode_map[probe]
 
-    tint_basename = os.path.basename(os.path.splitext(sorted(session_files, reverse=False)[0])[0])
-
-    directory = os.path.dirname(session_files[0])
+    tint_basename = os.path.basename(os.path.splitext(rhd_basename_file)[0])
+    directory = os.path.dirname(rhd_basename_file)
 
     # first check if this session has the necessary files
 
     pos_filename = '%s.pos' % os.path.join(directory, output_basename)
-    cues_filename = '%s_cues.json' % os.path.join(directory, tint_basename)
+    # cues_filename = '%s_cues.json' % os.path.join(directory, tint_basename)
     raw_pos_filename = '%s_raw_position.txt' % os.path.join(directory, tint_basename)
 
     # check if there is a position file
@@ -47,15 +44,15 @@ def validate_session(session_files, output_basename, convert_channels, self=None
         # create a position file with.
 
         if not os.path.exists(raw_pos_filename):
-            msg = ('[%s %s]: There is no .pos file or raw position file to create a ' + \
-                   '.pos file! Skipping the following basename: %s!') % \
-                  (str(datetime.datetime.now().date()),
-                   str(datetime.datetime.now().time())[:8], tint_basename)
-            if self:
-                self.LogAppend.myGUI_signal_str.emit(msg)
-            else:
-                print(msg)
-
+            if verbose:
+                msg = ('[%s %s]: There is no .pos file or raw position file to create a ' + \
+                       '.pos file! Skipping the following basename: %s!') % \
+                      (str(datetime.datetime.now().date()),
+                       str(datetime.datetime.now().time())[:8], tint_basename)
+                if self:
+                    self.LogAppend.myGUI_signal_str.emit(msg)
+                else:
+                    print(msg)
             return False
 
     # TODO: Add a check for the cues_filename, will add it if we need to.
@@ -157,8 +154,8 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                                detect_interval=10,
                                detect_sign=0, detect_threshold=3, freq_min=300, freq_max=6000,
                                mask_threshold=6,
-                               flip_sign=False, remove_common_mode=True, common_mode_method='sd',
-                               common_mode_channels=None, masked_chunk_size=None,
+                               flip_sign=False, software_rereference=True, reref_method='sd',
+                               reref_channels=None, masked_chunk_size=None,
                                mask_num_write_chunks=100,
                                clip_size=50, notch_filter=False, desired_Fs=48e3,
                                positionSampleFreq=50,
@@ -182,8 +179,6 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
 
     set_filename = output_basename + '.set'
 
-    converted_set_filename = output_basename + '.set'
-
     if interpolation:
         # the data will be interpolated to fit the desired Fs
         Fs = int(desired_Fs)
@@ -191,13 +186,73 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
         # else just use whatever sample rate the data was recorded at
         Fs = int(read_header(session_files[0])['sample_rate'])
 
+    # implement software re-referencing if the user wants to
+    # check if there's a reference channel chosen
+    file_header = read_header(session_files[0])
+
+    # get the probe value from the notes
+    probe = get_probe_name(session_files[0])
+
+    probe_map = tetrode_map[probe]
+
+    if 'reference_channel' in file_header.keys():
+        # Intan USB does not have this option
+        reference_channel = file_header['reference_channel']
+        if reference_channel != 'n/a':
+            reference_channel = get_ref_index(file_header['amplifier_channels'],
+                                              reference_channel)
+            # reference_channel = int(reference_channel.split('-')[-1]) + 1
+
+            # TODO: add it so that if you want to change software references
+
+            msg = '[%s %s]: Reference channel chosen during session.' % \
+                  (str(datetime.datetime.now().date()),
+                   str(datetime.datetime.now().time())[:8])
+            if self:
+                self.LogAppend.myGUI_signal_str.emit(msg)
+            else:
+                print(msg)
+
+            reref_channels = [reference_channel]
+            reref_method = None
+
+    # getting re-referencing data
+    if software_rereference:
+        msg = '[%s %s]: Finding re-reference data!' % \
+              (str(datetime.datetime.now().date()),
+               str(datetime.datetime.now().time())[:8])
+        if self:
+            self.LogAppend.myGUI_signal_str.emit(msg)
+        else:
+            print(msg)
+
+        if reref_channels is None:
+            if reref_method == 'sd':
+                reref_data, reref_channels = get_reref_data(session_files, probe_map,
+                                                           mode=reref_method)
+            elif reref_method == 'avg':
+                reref_data = get_reref_data(session_files, probe_map,
+                                            mode=reref_method)
+        else:
+            reref_method = None  # we gave the channels, so set to None
+            reref_data, reref_channels = get_reref_data(session_files,
+                                                       probe_map,
+                                                       channel=reref_channels)
+    else:
+        # deciding not to software re-reference
+        reref_channels = None
+        reref_data = None
+        reref_method = None
+
     # convert the intan data to .mda so they can be analyzed
+
     sort_duration = intan2mda(session_files, interpolation=interpolation,
                               notch_filter=notch_filter,
                               flip_sign=flip_sign,
-                              remove_common_mode=remove_common_mode,
-                              common_mode_method=common_mode_method,
-                              common_mode_channels=common_mode_channels,
+                              software_rereference=software_rereference,
+                              reref_data=reref_data,
+                              reref_channels=reref_channels,
+                              reref_method=reref_method,
                               desired_Fs=desired_Fs,
                               self=self)
 

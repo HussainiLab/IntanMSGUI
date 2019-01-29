@@ -1,16 +1,16 @@
 import sys, os, json, time
 from PIL import Image
 from PyQt5 import QtCore, QtWidgets
-from core.mountainsort_functions import find_sub
-from core.intan_rhd_functions import find_basename_files
 from core.batch_functions import BatchAnalyze
 from core.gui_utils import background, gui_name, center
 from core.ChooseDirectory import Choose_Dir
+from core.addSessions import RepeatAddSessions
 
 _author_ = "Geoffrey Barrett"  # defines myself as the author
 
 Large_Font = ("Verdana", 12)  # defines two fonts for different purposes (might not be used
 Small_Font = ("Verdana", 8)
+
 
 class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
@@ -42,14 +42,16 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         self.adding_session = True
         self.reordering_queue = False
+
         self.reset_add_thread = False
+        self.repeat_thread_active = False
 
         self.choice = ''
         self.home()  # runs the home function
 
     def home(self):  # defines the home function (the main window)
 
-        self.aborted_sessions = []
+        self.analyzed_sessions = []
 
         try:  # attempts to open previous directory catches error if file not found
             # No saved directory's need to create file
@@ -67,14 +69,13 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                 json.dump(directory_data, filename)  # writes the dictionary to the file
 
         # -------- settings widgets ------------------------
-
         self.pre_threshold_widget = QtWidgets.QSpinBox()
         pre_threshold_layout = QtWidgets.QHBoxLayout()
         pre_threshold_layout.addWidget(QtWidgets.QLabel("Pre-Threshold Samples:"))
         pre_threshold_layout.addWidget(self.pre_threshold_widget)
         self.pre_threshold_widget.setMinimum(0)
         self.pre_threshold_widget.setMaximum(50)
-        self.pre_threshold_widget.setValue(10)
+        self.pre_threshold_widget.setValue(15)
 
         self.post_threshold_widget = QtWidgets.QSpinBox()
         post_threshold_layout = QtWidgets.QHBoxLayout()
@@ -82,7 +83,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         post_threshold_layout.addWidget(self.post_threshold_widget)
         self.post_threshold_widget.setMinimum(0)
         self.post_threshold_widget.setMaximum(50)
-        self.post_threshold_widget.setValue(40)
+        self.post_threshold_widget.setValue(35)
 
         self.curated_cb = QtWidgets.QCheckBox("Curated")
         self.curated_cb.toggle()  # default it to curated
@@ -92,8 +93,9 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.detect_sign_combo.addItem("Negative Peaks")
         self.detect_sign_combo.addItem("Positive and Negative Peaks")
         self.detect_sign_combo.currentIndexChanged.connect(self.detect_sign_changed)
-        self.detect_sign = -1  # initializing detect_sign value
-        self.detect_sign_combo.setCurrentIndex(1)  # set default to negative peaks
+        # self.detect_sign = -1  # initializing detect_sign value
+        self.detect_sign = 0  # initializing detect_sign value
+        self.detect_sign_combo.setCurrentIndex(2)  # set default to negative peaks
 
         detect_sign_layout = QtWidgets.QHBoxLayout()
         detect_sign_layout.addWidget(QtWidgets.QLabel("Detect Sign:"))
@@ -273,12 +275,14 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         self.show()  # shows the widget
 
-        self.RepeatAddSessionsThread = QtCore.QThread()
-        self.RepeatAddSessionsThread.start()
+        if self.current_directory_name != 'No Directory Currently Chosen!':
+            # starting adding any existing sessions in a different thread
+            self.RepeatAddSessionsThread = QtCore.QThread()
+            self.RepeatAddSessionsThread.start()
 
-        self.RepeatAddSessionsWorker = Worker(self.FindSessionsRepeat)
-        self.RepeatAddSessionsWorker.moveToThread(self.RepeatAddSessionsThread)
-        self.RepeatAddSessionsWorker.start.emit("start")
+            self.RepeatAddSessionsWorker = Worker(RepeatAddSessions, self)
+            self.RepeatAddSessionsWorker.moveToThread(self.RepeatAddSessionsThread)
+            self.RepeatAddSessionsWorker.start.emit("start")
 
     def detect_sign_changed(self):
 
@@ -297,7 +301,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         current_value = self.version_combo.currentText()
 
         if hasattr(self, 'directory_queue'):
-            self.aborted_sessions = []
+            self.analyzed_sessions = []
             self.directory_queue.clear()
             self.restart_add_sessions_thread()
 
@@ -534,7 +538,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         for index, displaced_item in enumerate(add_to_new_queue):
             new_queue_order[indices_needed[index]] = displaced_item.clone()
 
-        self.aborted_sessions = []
+        self.analyzed_sessions = []
         self.directory_queue.clear()  # clears the list
 
         for key, value in sorted(new_queue_order.items()):
@@ -584,142 +588,35 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.current_directory_name = self.current_directory.text()
 
         # Find the sessions, and populate the conversion queue
-        self.aborted_sessions = []
+        self.analyzed_sessions = []
         self.directory_queue.clear()
+        self.restart_add_sessions_thread()
 
     def changed_whiten(self):
-        self.aborted_sessions = []
+        self.analyzed_sessions = []
         self.directory_queue.clear()
+        self.restart_add_sessions_thread()
 
-    def FindSessionsRepeat(self):
-        """This will continuously look for files to add to the Queue"""
+    def restart_add_sessions_thread(self):
 
-        while True:
-            time.sleep(0.1)  # wait X seconds before adding sessions to create less stress on the machine
+        self.reset_add_thread = True
 
-            if os.path.exists(self.current_directory_name):
-                self.addSessions()
-
-    def FindSessions(self, directory):
-        """This function will find the sessions"""
-        try:
-            directory_file_list = os.listdir(
-                directory)  # making a list of all files within the specified directory
-        except:
+        if not hasattr(self, 'repeat_thread_active'):
             return
 
-        rhd_sessions = []  # initializing the list of
+        # while self.repeat_thread_active:
+        #     time.sleep(0.1)
+        if hasattr(self, 'RepeatAddSessionsThread'):
+            self.RepeatAddSessionsThread.terminate()
 
-        intan_basenames = []
-        # list comprehension that finds the basename of each rhd file and appends to list if it isn't
-        # already in the list
-        [intan_basenames.append(file[:find_sub(file, '_')[-2]])
-         for file in directory_file_list if '.rhd' in file and '_' in file and
-         file[:find_sub(file, '_')[-2]] not in intan_basenames]
+        # self.reset_add_thread = False
+        self.RepeatAddSessionsThread = QtCore.QThread()
+        self.RepeatAddSessionsThread.setTerminationEnabled(True)
+        self.RepeatAddSessionsThread.start()
 
-        for basename in intan_basenames:
-            '''iterating through each file with this basename'''
-            if basename not in (session_file for session in rhd_sessions for session_file in session):
-                basename_session = find_basename_files(basename, directory)
-
-            if basename_session not in (session_file for session in rhd_sessions for session_file in session):
-                for session in basename_session:
-                    rhd_sessions.append(session)
-
-        return rhd_sessions
-
-    def addSessions(self):
-        """Adds any sessions that are not already on the list"""
-
-        directory_added = False
-        # finds the sub directories within the chosen directory
-
-        current_directory = self.current_directory_name
-
-        if self.nonbatch == 0:
-            try:
-                sub_directories = [d for d in os.listdir(current_directory)
-                                   if os.path.isdir(os.path.join(current_directory, d)) and
-                                   len([file for file in os.listdir(os.path.join(current_directory, d))
-                                        if '.rhd' in file if 'info.rhd' not in file]) != 0]
-            except PermissionError:
-                return
-        else:
-            sub_directories = [os.path.basename(current_directory)]
-            current_directory = os.path.dirname(current_directory)
-
-
-        iterator = QtWidgets.QTreeWidgetItemIterator(self.directory_queue)
-        # loops through all the already added sessions
-        added_directories = []
-        while iterator.value():
-            item = iterator.value()
-            if not os.path.exists(os.path.join(current_directory, item.data(0, 0))):
-                # then remove from the list since it doesn't exist anymore
-
-                root = self.directory_queue.invisibleRootItem()
-                for child_index in range(root.childCount()):
-                    if root.child(child_index) == item:
-                        self.RemoveChildItem.myGUI_signal_QTreeWidgetItem.emit(item)
-                        # root.removeChild(directory_item)
-            else:
-                try:
-                    added_directories.append(item.data(0, 0))
-                except RuntimeError:
-                    # prevents issues where the object was deleted before it could be added
-                    return
-
-            iterator += 1
-
-        for directory in sub_directories:
-
-            if 'Converted' in directory or 'Processed' in directory:
-                continue
-
-            if directory in added_directories:
-                # the directory has already been added, skip
-                continue
-
-            directory_item = QtWidgets.QTreeWidgetItem()
-            directory_item.setText(0, directory)
-
-            self.sessions = self.FindSessions(os.path.join(current_directory, directory))
-
-            if self.sessions is None:
-                continue
-
-            add_session = True
-            # add the sessions to the TreeWidget
-            for session in self.sessions:
-                if isinstance(session, str):
-                    session = [session]  # needs to be a list for the sorted()[] line
-
-                tint_basename = os.path.basename(os.path.splitext(sorted(session, reverse=False)[0])[0])
-
-                if tint_basename in self.aborted_sessions:
-                    add_session = False
-                    break
-
-                # only addds the sessions that haven't been added already
-
-                session_item = QtWidgets.QTreeWidgetItem()
-                session_item.setText(0, tint_basename)
-
-                #directory_item.addChild(session_item)
-
-                for file in session:
-                    session_file_item = QtWidgets.QTreeWidgetItem()
-                    session_file_item.setText(0, file)
-                    session_item.addChild(session_file_item)
-
-                directory_item.addChild(session_item)
-
-            if add_session:
-                self.directory_queue.addTopLevelItem(directory_item)
-                directory_added = True
-
-            if directory_added:
-                pass
+        self.RepeatAddSessionsWorker = Worker(RepeatAddSessions, self)
+        self.RepeatAddSessionsWorker.moveToThread(self.RepeatAddSessionsThread)
+        self.RepeatAddSessionsWorker.start.emit("start")
 
 
 def find_keys(my_dictionary, value):
@@ -815,8 +712,9 @@ class Communicate(QtCore.QObject):
 
 
 def nonbatch(self, state):
-    self.aborted_sessions = []
+    self.analyzed_sessions = []
     self.directory_queue.clear()
+    self.restart_add_sessions_thread()
 
     with open(self.settings_fname, 'r+') as filename:
         settings = json.load(filename)

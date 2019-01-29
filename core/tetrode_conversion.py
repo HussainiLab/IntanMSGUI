@@ -65,7 +65,6 @@ def write_tetrode_header(filepath, tetrode_parameters):
 
 
 def write_tetrode_data(filepath, spike_times, spike_data, samples_per_spike=50, Fs=48000):
-
     with open(filepath, 'w') as f:
         num_chans = '\nnum_chans 4'
         timebase_head = '\ntimebase %d hz' % (96000)
@@ -87,24 +86,61 @@ def write_tetrode_data(filepath, spike_times, spike_data, samples_per_spike=50, 
 
         f.writelines(write_order)
 
+    spike_data = np.swapaxes(spike_data, 0, 1)
+
+    n, n_channels, clip_size = spike_data.shape  # n spikes
+
+    # re-shaping the data so that the channels are concatenated such that
+    # the 0th dimension is n_channels * n_spikes, and the 1st dimension of the array
+    # is the clip size (samples per spike).
+    spike_data = spike_data.reshape((n_channels * n, clip_size))
+
+    # when writing the spike times we write it for each channel, so lets tile
+    spike_times = np.tile(spike_times, (n_channels, 1))
+    spike_times = spike_times.flatten(order='F')
+
+    # this will create a (n_samples, n_channels, n_samples_per_spike) => (n, 4, 50) sized matrix, we will create a
+    # matrix of all the samples and channels going from ch1 -> ch4 for each spike time
+    # time1 ch1_data
+    # time1 ch2_data
+    # time1 ch3_data
+    # time1 ch4_data
+    # time2 ch1_data
+    # time2 ch2_data
+    # .
+    # .
+    # .
+    spike_array = np.hstack((spike_times.reshape(len(spike_times), 1), spike_data))
+
+    spike_times = None
+    spike_values = None
+
+    spike_n = spike_array.shape[0]
+    t_packed = struct.pack('>%di' % spike_n, *spike_array[:, 0].astype(int))
+    spike_array = spike_array[:, 1:]  # removing time data from this matrix to save memory
+
+    spike_data_pack = struct.pack('<%db' % (spike_n * clip_size), *spike_array.astype(int).flatten())
+
+    spike_array = None
+
+    # now we need to combine the lists by alternating
+
+    comb_list = [None] * (2 * spike_n)
+    comb_list[::2] = [t_packed[i:i + 4] for i in range(0, len(t_packed), 4)]  # breaks up t_packed into a list,
+    # each timestamp is one 4 byte integer
+    comb_list[1::2] = [spike_data_pack[i:i + 50] for i in range(0, len(spike_data_pack), 50)]  # breaks up spike_data_
+    # pack and puts it into a list, each spike is 50 one byte integers
+
+    t_packed = None
+    spike_data_pack = None
+
+    write_order = []
     with open(filepath, 'rb+') as f:
+        write_order.extend(comb_list)
+        write_order.append(bytes('\r\ndata_end\r\n', 'utf-8'))
 
-        for i in np.arange(spike_data.shape[1]):
-            data = spike_data[:, i, :]
-            spike_t = spike_times[i]
-            write_list = []
-
-            for i in np.arange(data.shape[0]):
-                write_list.append(struct.pack('>i', int(spike_t)))
-                write_list.append(struct.pack('<%db' % (samples_per_spike),
-                                              *[int(sample) for sample in data[i, :].tolist()]))
-
-            f.seek(0, 2)
-            f.writelines(write_list)
-
-    with open(filepath, 'rb+') as f:
         f.seek(0, 2)
-        f.write(bytes('\r\ndata_end\r\n', 'utf-8'))
+        f.writelines(write_order)
 
 
 def get_clip_values(data_masked, spike_times, spike_channel, remove_spike_percentage=1,
@@ -387,7 +423,6 @@ def convert_tetrode(filt_filename, output_basename, Fs, pre_spike_samples=10, po
         else:
             self.LogAppend.myGUI_signal_str.emit(msg)
 
-        # write_tetrode(tetrode_filepath, cell_times, cell_data, tetrode_parameters)
         write_tetrode_data(tetrode_filepath, cell_times, cell_data, samples_per_spike=clip_size, Fs=Fs)
 
     # ------------ creating the cut file ----------------------- #

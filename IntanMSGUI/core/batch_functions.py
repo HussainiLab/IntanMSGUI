@@ -110,6 +110,10 @@ remove_method = 'max'  # this will find the max of the peak values (or min if it
 clip_scalar = 1.05  # this will multiply the clipping value found via the remove_method method,
 # and then scale by this value.
 
+# feature parameters
+num_features = 10
+max_num_clips_for_pca = 1000
+
 # miscellaneous
 # self = None  # this is code jargin for object oriented programming, mainly used for GUI's, we don't need this
 # just needs to be set in the function so I have it set to None.
@@ -380,6 +384,8 @@ def BatchAnalyze(main_window, directory):
                                                    clip_scalar=clip_scalar,
                                                    clip_method=remove_method,
                                                    eeg_channels=eeg_channels,
+                                                   num_features=num_features,
+                                                   max_num_clips_for_pca=max_num_clips_for_pca,
                                                    self=main_window)
 
                         main_window.analyzed_sessions.append(main_window.current_session)

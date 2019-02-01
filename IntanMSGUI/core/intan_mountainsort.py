@@ -1,5 +1,4 @@
 import os
-import numpy as np
 
 import datetime
 
@@ -168,6 +167,8 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                                remove_spike_percentage=1,
                                clip_scalar=1,
                                clip_method='max',
+                               num_features=10,
+                               max_num_clips_for_pca=1000,
                                remove_outliers=False, eeg_channels='first', self=None):
 
     directory = os.path.dirname(session_files[0])
@@ -219,6 +220,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
             reref_channels = [reference_channel]
             reref_method = None
 
+    reref_data = None
     # getting re-referencing data
     if software_rereference:
         msg = '[%s %s]: Finding re-reference data!' % \
@@ -260,13 +262,21 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                               self=self)
 
     # sort the mda data
-    sort_intan(directory, tint_fullpath, Fs, whiten=whiten, detect_interval=detect_interval,
+    sort_intan(directory, tint_fullpath, Fs,
+               whiten=whiten,
+               detect_interval=detect_interval,
                detect_sign=detect_sign,
-               detect_threshold=detect_threshold, freq_min=freq_min, freq_max=freq_max,
+               detect_threshold=detect_threshold,
+               freq_min=freq_min,
+               freq_max=freq_max,
                mask_threshold=mask_threshold,
                mask=mask,
-               masked_chunk_size=masked_chunk_size, mask_num_write_chunks=mask_num_write_chunks,
-               clip_size=clip_size, self=self)
+               masked_chunk_size=masked_chunk_size,
+               mask_num_write_chunks=mask_num_write_chunks,
+               clip_size=clip_size,
+               num_features=num_features,
+               max_num_clips_for_pca=max_num_clips_for_pca,
+               self=self)
 
     # create positions
     convert_position(session_files, pos_filename, positionSampleFreq, output_basename, sort_duration, self=self)
@@ -276,9 +286,11 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
     # be put into the set file. Create the set file, and then add the headers using those parameters
     batch_basename_tetrodes(directory, tint_basename, output_basename, Fs,
                             pre_spike_samples=pre_spike_samples,
-                            post_spike_samples=post_spike_samples, detect_sign=detect_sign,
+                            post_spike_samples=post_spike_samples,
+                            detect_sign=detect_sign,
                             remove_spike_percentage=remove_spike_percentage,
-                            remove_outliers=remove_outliers, clip_method=clip_method,
+                            remove_outliers=remove_outliers,
+                            clip_method=clip_method,
                             mask=mask,
                             clip_scalar=clip_scalar,
                             self=self)
@@ -286,13 +298,18 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
     # create the set file
     convert_setfile(session_files, tint_basename, set_filename, Fs,
                     pre_spike_samples=pre_spike_samples,
-                    post_spike_samples=post_spike_samples, rejthreshtail=rejthreshtail,
+                    post_spike_samples=post_spike_samples,
+                    rejthreshtail=rejthreshtail,
                     rejstart=rejstart,
-                    rejthreshupper=rejthreshupper, rejthreshlower=rejthreshlower, self=self)
+                    rejthreshupper=rejthreshupper,
+                    rejthreshlower=rejthreshlower,
+                    self=self)
 
     # overwrite the tetrode files to add the headers
-    batch_add_tetrode_headers(directory, tint_fullpath, self=self)
+    batch_add_tetrode_headers(directory, tint_fullpath,
+                              self=self)
 
     # create eeg / egf
     convert_eeg(session_files, tint_basename, output_basename, Fs,
-                convert_channels=eeg_channels, self=self)
+                convert_channels=eeg_channels,
+                self=self)

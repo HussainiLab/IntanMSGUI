@@ -1,3 +1,5 @@
+import numpy as np
+
 tetrode_map = {'buzsaki32': {1: [5, 4, 6, 3],
                              2: [13, 12, 14, 11],
                              3: [7, 2, 8, 1],
@@ -34,6 +36,50 @@ tetrode_map = {'buzsaki32': {1: [5, 4, 6, 3],
 
                'axona32_angled': {},
                }
+
+
+def tintRef2intan(tint_refs, tetrode_map, probe):
+    """
+    Given a list of tint_references (0-based index), it will return the channel
+    (1-based indexing) that this tint channel represents in Intan.
+
+    Tint is 0-based because that is what comes out of Tint (in the set file).
+    Intan is 1-based because it's just easy to think about a 16 channel probe
+    as having channels from 1-16.
+    """
+    probe_map = tetrode_map[probe]
+
+    tetrode_channels = []
+    for key in sorted(probe_map.keys()):
+        tetrode_channels.extend(probe_map[key])
+
+    tetrode_channels = np.asarray(tetrode_channels)
+
+    return list(tetrode_channels[tint_refs])
+
+
+def intanRef2tint(intan_refs, tetrode_map, probe):
+    """
+    Given a list of intan references (1-based index), it will return the tinta channel
+    (0-based indexing) that this intan channel represents.
+
+    Tint is 0-based because that is what comes out of Tint (in the set file).
+    Intan is 1-based because it's just easy to think about a 16 channel probe
+    as having channels from 1-16.
+    """
+    probe_map = tetrode_map[probe]
+
+    tetrode_channels = []
+    for key in sorted(probe_map.keys()):
+        tetrode_channels.extend(probe_map[key])
+
+    tetrode_channels = np.asarray(tetrode_channels)
+
+    tint_refs = []
+    for channel in intan_refs:
+        tint_refs.append(np.where(tetrode_channels == channel)[0][0])
+
+    return tint_refs
 
 
 def intan_scalar():

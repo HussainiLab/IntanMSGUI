@@ -3,6 +3,7 @@ from PyQt5 import QtGui, QtWidgets
 
 gui_name = os.path.basename(os.path.dirname(os.path.dirname(__file__)))
 
+
 def background(self):  # defines the background for each window
     """providing the background info for each window"""
 

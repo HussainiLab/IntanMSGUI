@@ -3,7 +3,7 @@ from PyQt5 import QtWidgets
 import time
 from core.utils import find_sub
 from core.intan_rhd_functions import is_session_beginning, find_basename_files
-from core.batch_functions import eeg_channels
+from core.default_parameters import eeg_channels
 from core.intan_mountainsort import validate_session
 
 

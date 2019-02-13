@@ -13,24 +13,6 @@ import datetime
 import json
 
 
-def overwrite_set_parameter(set_filename, parameter_name, parameter_value):
-    parameter_found = False
-    file_data = ''
-    with open(set_filename, 'r') as f:
-        for line in f:
-            if line[:len(parameter_name)] == parameter_name:
-                file_data += '%s %s\n' % (parameter_name, parameter_value)
-                parameter_found = True
-            else:
-                file_data += line
-
-    if parameter_found:
-        with open(set_filename, 'w') as f:
-            f.write(file_data)
-    else:
-        print('The "%s" parameter has not been found in the following set file: %s!' % (parameter_name, set_filename))
-
-
 def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notch_freq=60, self=None):
     # data is given in int16
 
@@ -497,7 +479,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
         else:
             print(msg)
 
-        return
+        return False
 
     # set_filename = '%s.set' % (os.path.join(directory, tint_basename))
     set_filename = '%s.set' % output_basename
@@ -604,10 +586,6 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                     else:
                         eeg_number = eeg_ext[4:]
 
-                    # overwrite so we know which eeg channel belongs to which ephys channel
-                    overwrite_set_parameter(set_filename, 'EEG_ch_%s' % eeg_number, channel_number)
-                    overwrite_set_parameter(set_filename, 'saveEEG_ch_%s' % eeg_number, '1')
-
                 if os.path.exists(egf_filename):
 
                     msg = '[%s %s]: The following EGF file has already been created, skipping: %s!' % \
@@ -645,3 +623,5 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
 
     with open(cue_fname, 'w') as f:
         json.dump(cue_data, f)
+
+    return True

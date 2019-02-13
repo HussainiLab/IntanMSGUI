@@ -5,6 +5,8 @@ from core.batch_functions import BatchAnalyze
 from core.gui_utils import background, gui_name, center
 from core.ChooseDirectory import Choose_Dir
 from core.addSessions import RepeatAddSessions
+from core.settingsWindow import SettingsWindow
+
 
 _author_ = "Geoffrey Barrett"  # defines myself as the author
 
@@ -22,23 +24,39 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.setWindowTitle("%s - Main Window" % gui_name)  # sets the title of the window
         self.current_session = ''
         self.current_subdirectory = ''
+        self.analyzed_sessions = []
+        self.settings_window = None
+
+        # It is good practice to execute the signals from the main thread of the GUI, however a lot of the data is
+        # analyzed in other threads. Thus we will create signals that will be called from the other threads to the main
+        # thread.
+
+        # create a signal that will append values to the lopg
         self.LogAppend = Communicate()
         self.LogAppend.myGUI_signal_str.connect(self.AppendLog)
 
+        # create a signal that will generate pop ups if there's an error
         self.LogError = Communicate()
         self.LogError.myGUI_signal_str.connect(self.raiseError)
 
         self.RemoveQueueItem = Communicate()
         self.RemoveQueueItem.myGUI_signal_str.connect(self.takeTopLevel)
 
+        # create a signal that will remove a session from the queue
         self.RemoveSessionItem = Communicate()
         self.RemoveSessionItem.myGUI_signal_str.connect(self.takeChild)
 
+        # create a signal that will remove a session file (RHD Files) from the queue
         self.RemoveSessionData = Communicate()
         self.RemoveSessionData.myGUI_signal_str.connect(self.takeChildData)
 
+        # create a signal that will remove children from the queue
         self.RemoveChildItem = Communicate()
         self.RemoveChildItem.myGUI_signal_QTreeWidgetItem.connect(self.removeChild)
+
+        # need to define the QThreads in __init__ or it might garbage collected unnecessarily
+        self.RepeatAddSessionsThread = QtCore.QThread()  # thread that will add sessions to the queue
+        self.AnalyzeThread = QtCore.QThread()   # thread that will start when the 'Run' button is pressed.
 
         self.adding_session = True
         self.reordering_queue = False
@@ -46,12 +64,13 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.reset_add_thread = False
         self.repeat_thread_active = False
 
+        # self.choice is used for the errors that will spawn, we will default to '', generally we wait for the user
+        # to make a choice  (changes from '') so this is required.
         self.choice = ''
-        self.home()  # runs the home function
+
+        self.home()  # runs the home function to spawn all the QWidgets
 
     def home(self):  # defines the home function (the main window)
-
-        self.analyzed_sessions = []
 
         try:  # attempts to open previous directory catches error if file not found
             # No saved directory's need to create file
@@ -68,94 +87,6 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                 directory_data = {'directory': current_directory_name}  # creates a dictionary
                 json.dump(directory_data, filename)  # writes the dictionary to the file
 
-        # -------- settings widgets ------------------------
-        self.pre_threshold_widget = QtWidgets.QSpinBox()
-        pre_threshold_layout = QtWidgets.QHBoxLayout()
-        pre_threshold_layout.addWidget(QtWidgets.QLabel("Pre-Threshold Samples:"))
-        pre_threshold_layout.addWidget(self.pre_threshold_widget)
-        self.pre_threshold_widget.setMinimum(0)
-        self.pre_threshold_widget.setMaximum(50)
-        self.pre_threshold_widget.setValue(15)
-
-        self.post_threshold_widget = QtWidgets.QSpinBox()
-        post_threshold_layout = QtWidgets.QHBoxLayout()
-        post_threshold_layout.addWidget(QtWidgets.QLabel("Post-Threshold Samples:"))
-        post_threshold_layout.addWidget(self.post_threshold_widget)
-        self.post_threshold_widget.setMinimum(0)
-        self.post_threshold_widget.setMaximum(50)
-        self.post_threshold_widget.setValue(35)
-
-        self.curated_cb = QtWidgets.QCheckBox("Curated")
-        self.curated_cb.toggle()  # default it to curated
-
-        self.detect_sign_combo = QtWidgets.QComboBox()
-        self.detect_sign_combo.addItem("Positive Peaks")
-        self.detect_sign_combo.addItem("Negative Peaks")
-        self.detect_sign_combo.addItem("Positive and Negative Peaks")
-        self.detect_sign_combo.currentIndexChanged.connect(self.detect_sign_changed)
-        # self.detect_sign = -1  # initializing detect_sign value
-        self.detect_sign = 0  # initializing detect_sign value
-        self.detect_sign_combo.setCurrentIndex(2)  # set default to negative peaks
-
-        detect_sign_layout = QtWidgets.QHBoxLayout()
-        detect_sign_layout.addWidget(QtWidgets.QLabel("Detect Sign:"))
-        detect_sign_layout.addWidget(self.detect_sign_combo)
-
-        self.detect_threshold_widget = QtWidgets.QSpinBox()
-        detect_threshold_layout = QtWidgets.QHBoxLayout()
-        detect_threshold_layout.addWidget(QtWidgets.QLabel("Detect Threshold:"))
-        detect_threshold_layout.addWidget(self.detect_threshold_widget)
-        self.detect_threshold_widget.setValue(3)
-
-        self.whiten_cb = QtWidgets.QCheckBox('Whiten')
-        self.whiten_cb.toggle()  # set the default to whiten
-        self.whiten_cb.stateChanged.connect(self.changed_whiten)
-
-        self.detect_interval_widget = QtWidgets.QSpinBox()
-        detect_interval_layout = QtWidgets.QHBoxLayout()
-        detect_interval_layout.addWidget(QtWidgets.QLabel("Detect Interval:"))
-        detect_interval_layout.addWidget(self.detect_interval_widget)
-        self.detect_interval_widget.setValue(50)
-
-        self.version_combo = QtWidgets.QComboBox()
-        self.version_combo.addItem("MountainSort3")
-        self.version_combo.addItem("MountainSort-Js")
-        self.version_combo.currentIndexChanged.connect(self.version_changed)
-        self.version = 'js'
-        self.version_combo.setCurrentIndex(1)  # set default js
-
-        version_layout = QtWidgets.QHBoxLayout()
-        version_layout.addWidget(QtWidgets.QLabel("Version:"))
-        version_layout.addWidget(self.version_combo)
-
-        ms_settings_layout = QtWidgets.QVBoxLayout()
-
-        settings_layer1 = QtWidgets.QHBoxLayout()
-        settings_layer2 = QtWidgets.QHBoxLayout()
-
-        settings_layer1.addStretch(1)
-        settings_layer2.addStretch(1)
-
-        layer1_widgets = [pre_threshold_layout, post_threshold_layout, self.curated_cb, self.whiten_cb]
-        layer2_widgets = [detect_sign_layout, detect_threshold_layout, detect_interval_layout, version_layout]
-
-        for widget in layer1_widgets:
-            if 'Layout' in str(widget):
-                settings_layer1.addLayout(widget)
-            else:
-                settings_layer1.addWidget(widget)
-            settings_layer1.addStretch(1)
-
-        for widget in layer2_widgets:
-            if 'Layout' in str(widget):
-                settings_layer2.addLayout(widget)
-            else:
-                settings_layer2.addWidget(widget)
-            settings_layer2.addStretch(1)
-
-        ms_settings_layout.addLayout(settings_layer1)
-        ms_settings_layout.addLayout(settings_layer2)
-
         # ------buttons ------------------------------------------
         quitbtn = QtWidgets.QPushButton('Quit', self)  # making a quit button
         quitbtn.clicked.connect(self.close_app)  # defining the quit button functionality (once pressed)
@@ -164,6 +95,8 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         self.run_btn = QtWidgets.QPushButton('Run', self)  # creates the batch-klusta pushbutton
         self.run_btn.setToolTip('Click to perform batch analysis!')
+
+        self.settings_btn = QtWidgets.QPushButton('Settings', self)
 
         self.choose_directory = QtWidgets.QPushButton('Choose Directory', self)  # creates the choose directory pushbutton
 
@@ -220,7 +153,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
             with open(self.settings_fname, 'r+') as filename:
                 settings = json.load(filename)
                 if settings['nonbatch'] == 1:
-                    self.nonbatch_check.toggle
+                    self.nonbatch_check.toggle()
 
         except FileNotFoundError:
             with open(self.settings_fname, 'w') as filename:
@@ -250,12 +183,12 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         # ------------------- page layout ----------------------------------------
 
-        btn_order = [self.run_btn, quitbtn]  # defining button order (left to right)
+        btn_order = [self.run_btn, self.settings_btn, quitbtn]  # defining button order (left to right)
         btn_layout = QtWidgets.QHBoxLayout()  # creating a widget to align the buttons
         for butn in btn_order:  # adds the buttons in the proper order
             btn_layout.addWidget(butn)
 
-        layout_order = [current_directory_layout, queue_and_btn_layout, ms_settings_layout, log_lay, btn_layout]
+        layout_order = [current_directory_layout, queue_and_btn_layout, log_lay, btn_layout]
 
         layout = QtWidgets.QVBoxLayout()
         layout.addStretch(1)  # adds the widgets/layouts according to the order
@@ -273,44 +206,15 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         center(self)  # centers the widget on the screen
 
+        # starting adding any existing sessions in a different thread
+        # self.RepeatAddSessionsThread = QtCore.QThread()
+        self.RepeatAddSessionsThread.start()
+
+        self.RepeatAddSessionsWorker = Worker(RepeatAddSessions, self)
+        self.RepeatAddSessionsWorker.moveToThread(self.RepeatAddSessionsThread)
+        self.RepeatAddSessionsWorker.start.emit("start")
+
         self.show()  # shows the widget
-
-        if self.current_directory_name != 'No Directory Currently Chosen!':
-            # starting adding any existing sessions in a different thread
-            self.RepeatAddSessionsThread = QtCore.QThread()
-            self.RepeatAddSessionsThread.start()
-
-            self.RepeatAddSessionsWorker = Worker(RepeatAddSessions, self)
-            self.RepeatAddSessionsWorker.moveToThread(self.RepeatAddSessionsThread)
-            self.RepeatAddSessionsWorker.start.emit("start")
-
-    def detect_sign_changed(self):
-
-        current_value = self.detect_sign_combo.currentText()
-
-        if 'Pos' in current_value and "Neg" in current_value:
-            self.detect_sign = 0
-        elif 'Pos' in current_value:
-            self.detect_sign = 1
-        elif 'Neg' in current_value:
-            self.detect_sign = -1
-        else:
-            self.LogAppend.myGUI_signal_str.emit('detect sign value does not exist')
-
-    def version_changed(self):
-        current_value = self.version_combo.currentText()
-
-        if hasattr(self, 'directory_queue'):
-            self.analyzed_sessions = []
-            self.directory_queue.clear()
-            self.restart_add_sessions_thread()
-
-        if 'MountainSort3' in current_value:
-            self.version = 'ms3'
-        elif 'MountainSort-Js' in current_value:
-            self.version = 'js'
-        else:
-            self.LogAppend.myGUI_signal_str.emit('Version value does not exist')
 
     def run(self, directory):  # function that runs klustakwik
 
@@ -322,10 +226,10 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.run_btn.clicked.disconnect()
         self.run_btn.clicked.connect(self.stopBatch)
 
-        self.AnalyzeThread = QtCore.QThread()
+        # self.AnalyzeThread = QtCore.QThread()
         self.AnalyzeThread.start()
 
-        self.AnalyzeWorker = Worker(BatchAnalyze, self, directory)
+        self.AnalyzeWorker = Worker(BatchAnalyze, self, self.settings_window, directory)
         self.AnalyzeWorker.moveToThread(self.AnalyzeThread)
         self.AnalyzeWorker.start.emit("start")
 
@@ -362,7 +266,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                                                      "Please choose a different directory!",
                                                      QtWidgets.QMessageBox.Ok)
 
-        elif 'InvDirBatch':
+        elif 'InvDirBatch' in error_val:
             self.choice = QtWidgets.QMessageBox.question(self, "Invalid Directory!",
                                                      "In 'Batch Mode' you need to choose a directory\n"
                                                      "with subdirectories that contain all your Tint\n"
@@ -370,7 +274,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                                                      "plan on adding folders to the chosen directory press\n"
                                                      "continue.",
                                                      QtWidgets.QMessageBox.Abort | QtWidgets.QMessageBox.Ok)
-        elif 'InvDirNonBatch':
+        elif 'InvDirNonBatch' in error_val:
             self.choice = QtWidgets.QMessageBox.question(self, "Invalid Directory!",
                                                      "In 'Non-Batch Mode' you need to choose a directory\n"
                                                      "that contain all your Tint files.\n",
@@ -592,11 +496,6 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.directory_queue.clear()
         self.restart_add_sessions_thread()
 
-    def changed_whiten(self):
-        self.analyzed_sessions = []
-        self.directory_queue.clear()
-        self.restart_add_sessions_thread()
-
     def restart_add_sessions_thread(self):
 
         self.reset_add_thread = True
@@ -610,7 +509,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
             self.RepeatAddSessionsThread.terminate()
 
         # self.reset_add_thread = False
-        self.RepeatAddSessionsThread = QtCore.QThread()
+        # self.RepeatAddSessionsThread = QtCore.QThread()
         self.RepeatAddSessionsThread.setTerminationEnabled(True)
         self.RepeatAddSessionsThread.start()
 
@@ -734,6 +633,10 @@ def run():
     main_w = Window()  # calling the main window
     choose_dir_w = Choose_Dir()  # calling the Choose Directory Window
 
+    settings_w = SettingsWindow(main_w)
+
+    main_w.settings_window = settings_w
+
     # synchs the current directory on the main window
     choose_dir_w.current_directory_name = main_w.current_directory_name
 
@@ -742,6 +645,9 @@ def run():
     main_w.nonbatch_check.stateChanged.connect(lambda: nonbatch(main_w, main_w.nonbatch_check.isChecked()))
     # brings the directory window to the foreground
     main_w.choose_directory.clicked.connect(lambda: raise_window(choose_dir_w,main_w))
+
+    main_w.settings_btn.clicked.connect(lambda: raise_window(settings_w, main_w))
+    settings_w.okay_button.clicked.connect(lambda: raise_window(main_w, settings_w))
     # main_w.choose_directory.clicked.connect(lambda: raise_window(choose_dir_w))
 
     # brings the main window to the foreground

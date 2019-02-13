@@ -1,5 +1,4 @@
 import os
-
 import datetime
 
 from core.tetrode_conversion import batch_basename_tetrodes, batch_add_tetrode_headers
@@ -8,9 +7,8 @@ from core.eeg_conversion import convert_eeg, get_eeg_channels
 from core.utils import find_sub
 from core.intan2mda import intan2mda, get_reref_data
 from core.mdaSort import sort_intan
-from core.set_conversion import convert_setfile
+from core.set_conversion import convert_setfile, overwrite_eeg_set_params
 from core.rhd_utils import tetrode_map
-
 from core.intan_rhd_functions import read_header, get_probe_name, get_ref_index
 
 
@@ -57,13 +55,14 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
     # TODO: Add a check for the cues_filename, will add it if we need to.
 
     # check that all the files haven't already been converted
-
+    
     # check that all tetrodes haven't already been created
     converted_files = 0
     n_tetrodes = 0
     for tetrode, tetrode_channels in sorted(probe_map.items()):
 
-        mda_filename = '%s_T%d_raw.mda' % (os.path.join(directory, tint_basename), tetrode)
+        # mda_filename = '%s_T%d_raw.mda' % (os.path.join(directory, tint_basename), tetrode)
+        mda_filename = '%s_T%d_firings.mda' % (os.path.join(directory, tint_basename), tetrode)
 
         if os.path.exists(mda_filename):
             converted_files += 1
@@ -75,27 +74,35 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
 
     # check that all the tetrodes have been converted
 
-    raw_fnames = [os.path.join(directory, file) for file in os.listdir(
-        directory) if '_raw.mda' in file if tint_basename in file]
+    # raw_fnames = [os.path.join(directory, file) for file in os.listdir(
+    #     directory) if '_raw.mda' in file if tint_basename in file]
 
-    eeg_filenames = []
-    egf_filenames = []
+    firing_fnames = [os.path.join(directory, file) for file in os.listdir(
+         directory) if '_firings.mda' in file if tint_basename in file]
 
-    for file in raw_fnames:
+    # for file in raw_fnames:
+    for file in firing_fnames:
         mda_basename = os.path.splitext(file)[0]
         mda_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
 
-        # masked filename no longer required
+        # I used to check all of these files however, I added this cleanup function that will delete the unnecessary
+        # ones, so we delete most of this besides the firings and the metrics.
+
         # masked_out_fname = mda_basename + '_masked.mda'
-        firings_out = mda_basename + '_firings.mda'
-        filt_out_fname = mda_basename + '_filt.mda'
-        pre_out_fname = mda_basename + '_pre.mda'
+        # filt_out_fname = mda_basename + '_filt.mda'
+        # pre_out_fname = mda_basename + '_pre.mda'
+
+        # firings_out = mda_basename + '_firings.mda'
+        firings_out = file
+
         metrics_out_fname = mda_basename + '_metrics.json'
 
         # check if these outputs have already been created, skip if they have
         existing_files = 0
-        output_files = [filt_out_fname, firings_out,
-                        pre_out_fname, metrics_out_fname,
+        output_files = [firings_out,
+                        # filt_out_fname,
+                        # pre_out_fname,
+                        metrics_out_fname,
                         # masked_out_fname,
                         ]
         for outfile in output_files:
@@ -109,11 +116,13 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
     # already checked if position file exists so we don't need to do that
 
     # check if tetrodes/cut files have been converted already
-    filt_fnames = [os.path.join(directory, file) for file in os.listdir(
-        directory) if '_filt.mda' in file if os.path.basename(tint_basename) in file]
+    # filt_fnames = [os.path.join(directory, file) for file in os.listdir(
+    #     directory) if '_filt.mda' in file if os.path.basename(tint_basename) in file]
 
-    for filt_filename in filt_fnames:
-        mda_basename = os.path.splitext(filt_filename)[0]
+    # for filt_filename in filt_fnames:
+    for file in firing_fnames:
+        # mda_basename = os.path.splitext(filt_filename)[0]
+        mda_basename = os.path.splitext(file)[0]
         mda_basename = mda_basename[:find_sub(mda_basename, '_')[-1]]
 
         tetrode = int(mda_basename[find_sub(mda_basename, '_')[-1] + 2:])
@@ -150,6 +159,44 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
 
     # if you made it this far, then everything has been converted, return False
     return False
+
+
+def cleanup_files(directory, tint_basename, delete_pre=True, delete_firings=False, delete_masked=True,
+                  delete_filt=True, delete_raw=True):
+    """
+    This function will iterate through files that were created, and delete files that we don't need just to save space.
+    :return:
+    """
+    delete_files = []
+
+    if delete_pre:
+        pre_filenames = [os.path.join(directory, file) for file in os.listdir(
+            directory) if '_pre.mda' in file if os.path.basename(tint_basename) in file]
+        delete_files.extend(pre_filenames)
+
+    if delete_firings:
+        firing_filenames = [os.path.join(directory, file) for file in os.listdir(
+            directory) if '_firings.mda' in file if os.path.basename(tint_basename) in file]
+        delete_files.extend(firing_filenames)
+
+    if delete_masked:
+        masked_filenames = [os.path.join(directory, file) for file in os.listdir(
+            directory) if '_masked.mda' in file if os.path.basename(tint_basename) in file]
+        delete_files.extend(masked_filenames)
+
+    if delete_filt:
+        filt_filenames = [os.path.join(directory, file) for file in os.listdir(
+            directory) if '_filt.mda' in file if os.path.basename(tint_basename) in file]
+        delete_files.extend(filt_filenames)
+
+    if delete_raw:
+        filt_filenames = [os.path.join(directory, file) for file in os.listdir(
+            directory) if '_raw.mda' in file if os.path.basename(tint_basename) in file]
+        delete_files.extend(filt_filenames)
+
+    if len(delete_files) > 0:
+        for file in delete_files:
+            os.remove(file)
 
 
 def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
@@ -296,20 +343,50 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                             self=self)
 
     # create the set file
-    convert_setfile(session_files, tint_basename, set_filename, Fs,
-                    pre_spike_samples=pre_spike_samples,
-                    post_spike_samples=post_spike_samples,
-                    rejthreshtail=rejthreshtail,
-                    rejstart=rejstart,
-                    rejthreshupper=rejthreshupper,
-                    rejthreshlower=rejthreshlower,
-                    self=self)
+    set_converted = convert_setfile(session_files, tint_basename, set_filename, Fs,
+                                    pre_spike_samples=pre_spike_samples,
+                                    post_spike_samples=post_spike_samples,
+                                    rejthreshtail=rejthreshtail,
+                                    rejstart=rejstart,
+                                    rejthreshupper=rejthreshupper,
+                                    rejthreshlower=rejthreshlower,
+                                    self=self)
 
     # overwrite the tetrode files to add the headers
     batch_add_tetrode_headers(directory, tint_fullpath,
                               self=self)
 
     # create eeg / egf
-    convert_eeg(session_files, tint_basename, output_basename, Fs,
-                convert_channels=eeg_channels,
-                self=self)
+    eeg_converted = convert_eeg(session_files, tint_basename, output_basename, Fs,
+                                convert_channels=eeg_channels,
+                                self=self)
+
+    if set_converted or eeg_converted:
+        # then we will overwrite the eeg filename parameters that were set since it is not taken care of in the
+        # initial convert_setfile() function. We will only do this if a .set file or .eeg file is newly created
+        overwrite_eeg_set_params(tint_basename, set_filename)
+
+    # clean up any files to save space
+    if mask:
+        delete_masked = False
+        delete_filt = True
+    else:
+        delete_filt = False
+        delete_masked = True
+
+    # we will always delete the preprocessed data, we have the output from the sorting so we won't really need it
+    # we will save the firings in case we want to view the data in MountainView, and if the user decides to mask
+    # the data we will delete the filt and keep the mask. If the user decides not to mask, we will keep the filtered
+    # and delete the masked which won't exist anyways.
+
+    msg = '[%s %s]: Deleting unnecessary intermediate files from MountainSort.' % \
+          (str(datetime.datetime.now().date()),
+           str(datetime.datetime.now().time())[:8])
+    if self:
+        self.LogAppend.myGUI_signal_str.emit(msg)
+    else:
+        print(msg)
+
+    cleanup_files(directory, tint_basename, delete_pre=True, delete_firings=False, delete_masked=delete_masked,
+                  delete_filt=delete_filt, delete_raw=True)
+

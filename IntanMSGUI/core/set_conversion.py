@@ -5,7 +5,8 @@ import datetime
 from core.utils import session_datetime
 # import math
 import core.intan_rhd_functions as f_intan
-from core.rhd_utils import tetrode_map
+from core.rhd_utils import tetrode_map, intanRef2tint
+from core.intan_rhd_functions import get_probe_name
 import json
 
 
@@ -81,16 +82,20 @@ def get_session_parameters(tint_basename, session_files, Fs, pre_spike_samples=1
                 clip_data = json.load(f2)
 
             channel_gains = np.zeros(n_channels)
-            channel_scalar8s = np.zeros(n_channels)
-            channel_scalar16s = np.zeros(n_channels)
+            # channel_scalar8s = np.zeros(n_channels)
+            # channel_scalar16s = np.zeros(n_channels)
 
             for tetrode in probe_map.keys():
                 tetrode_clips = clip_data[str(tetrode)]
 
                 for channel in probe_map[tetrode]:
+                    #  convert the channel from the intan value to the tint value
+                    channel = intanRef2tint([channel], tetrode_map, probe)[0] + 1
+
+                    # save the channel value
                     channel_gains[channel - 1] = tetrode_clips['gain']
-                    channel_scalar8s[channel - 1] = tetrode_clips['scalar8bit']
-                    channel_scalar16s[channel - 1] = tetrode_clips['scalar16bit']
+                    # channel_scalar8s[channel - 1] = tetrode_clips['scalar8bit']
+                    # channel_scalar16s[channel - 1] = tetrode_clips['scalar16bit']
 
             session_parameters['gain'] = channel_gains
 
@@ -716,7 +721,7 @@ def convert_setfile(session_files, tint_basename, set_filename, Fs, pre_spike_sa
             self.LogAppend.myGUI_signal_str.emit(msg)
         else:
             print(msg)
-        return
+        return False
 
     session_parameters = get_session_parameters(tint_basename, session_files, Fs, pre_spike_samples=pre_spike_samples,
                                                 post_spike_samples=post_spike_samples, rejthreshtail=rejthreshtail,
@@ -724,3 +729,56 @@ def convert_setfile(session_files, tint_basename, set_filename, Fs, pre_spike_sa
                                                 rejthreshlower=rejthreshlower)
 
     write_set(set_filename, session_files, session_parameters)
+
+    return True
+
+
+def overwrite_set_parameter(set_filename, parameter_name, parameter_value):
+    parameter_found = False
+    file_data = ''
+    with open(set_filename, 'r') as f:
+        for line in f:
+            if line[:len(parameter_name) + 1] == parameter_name + ' ':
+                file_data += '%s %s\n' % (parameter_name, parameter_value)
+                parameter_found = True
+            else:
+                file_data += line
+
+    if parameter_found:
+        with open(set_filename, 'w') as f:
+            f.write(file_data)
+    else:
+        print('The "%s" parameter has not been found in the following set file: %s!' % (
+            parameter_name, set_filename))
+
+
+def overwrite_eeg_set_params(tint_basename, set_filename):
+    """
+    When we intitially create the .set file we ignore the .eeg parameters.
+    This method will go and find all the eeg parameters and update those lines
+    so that it shows which eeg channel was used. This will allow us to properly
+    convert from bits to uV later by looking at the gain of the channel that was
+    used for the conversion.
+    """
+
+    # reconvert eeg / egf
+    cues_filename = '%s_cues.json' % tint_basename
+
+    session_file = '%s.rhd' % tint_basename
+    probe = get_probe_name(session_file)
+
+    if os.path.exists(cues_filename):
+        with open(cues_filename, 'r') as f:
+            cues_data = json.load(f)
+
+    if 'converted_eeg' in cues_data.keys():
+        converted_eegs = cues_data['converted_eeg']
+
+    for eeg_number, channel_number in converted_eegs.items():
+        eeg_number = str(int(eeg_number) + 1)
+
+        channel = intanRef2tint([channel_number], tetrode_map, probe)[0] + 1
+
+        # overwrite so we know which eeg channel belongs to which ephys channel
+        overwrite_set_parameter(set_filename, 'EEG_ch_%s' % eeg_number, channel)
+        overwrite_set_parameter(set_filename, 'saveEEG_ch_%s' % eeg_number, '1')

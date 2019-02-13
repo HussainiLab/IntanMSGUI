@@ -405,7 +405,7 @@ def convert_tetrode(filt_filename, data_filename, output_basename, Fs, pre_spike
             with open(clip_filename, 'r') as f:
                 clip_data = json.load(f)
 
-            clip_data[tetrode] = tetrode_clip
+            clip_data[str(tetrode)] = tetrode_clip
 
             with open(clip_filename, 'w') as f:
                 json.dump(clip_data, f)

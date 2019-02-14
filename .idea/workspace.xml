@@ -2,20 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2f714523-24c5-45e6-b6ca-2b1dc1f1c344" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/IntanMSGUI/core/settingsWindow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/addSessions.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/addSessions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/batch_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/batch_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/convert_position.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/convert_position.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/eeg_conversion.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/eeg_conversion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/gui_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/gui_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/intan_mountainsort.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/intan_mountainsort.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/rhd_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/rhd_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/set_conversion.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/set_conversion.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/jupyter/batch_intanMS.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/jupyter/batch_intanMS.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,10 +17,27 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/convert_position.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-14">
-              <caret line="152" column="90" selection-start-line="152" selection-start-column="90" selection-end-line="152" selection-end-column="90" />
+            <state relative-caret-position="3213">
+              <caret line="197" selection-start-line="197" selection-end-line="197" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="304">
+              <caret line="419" lean-forward="true" selection-start-line="419" selection-end-line="419" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#758#1992#0" />
+                <element signature="e#2090#5053#0" />
+                <element signature="e#5233#7741#0" />
+                <element signature="e#18922#20178#0" />
+                <element signature="e#20217#20442#0" />
               </folding>
             </state>
           </provider>
@@ -40,17 +46,17 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/default_parameters.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-14">
-              <caret line="38" column="1" lean-forward="true" selection-start-line="38" selection-start-column="1" selection-end-line="38" selection-end-column="1" />
+            <state relative-caret-position="646">
+              <caret line="38" column="1" selection-start-line="38" selection-start-column="1" selection-end-line="38" selection-end-column="1" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/set_conversion.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="763">
-              <caret line="746" column="9" selection-start-line="746" selection-start-column="9" selection-end-line="746" selection-end-column="9" />
+            <state relative-caret-position="11866">
+              <caret line="707" column="27" selection-start-line="707" selection-start-column="27" selection-end-line="707" selection-end-column="27" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -61,8 +67,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/eeg_conversion.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="595">
-              <caret line="35" column="7" lean-forward="true" selection-start-line="35" selection-start-column="7" selection-end-line="35" selection-end-column="7" />
+            <state relative-caret-position="321">
+              <caret line="102" column="24" selection-start-line="102" selection-start-column="18" selection-end-line="102" selection-end-column="24" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -73,33 +79,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan_mountainsort.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="451">
-              <caret line="366" column="61" lean-forward="true" selection-start-line="366" selection-start-column="61" selection-end-line="366" selection-end-column="61" />
+            <state relative-caret-position="4318">
+              <caret line="265" selection-start-line="265" selection-end-line="265" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/gui_utils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
-              <caret line="21" column="50" lean-forward="true" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="50" />
-              <folding>
-                <element signature="e#0#9#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/filtering.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-31">
-              <folding>
-                <element signature="e#0#33#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -108,19 +91,32 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="953">
-              <caret line="268" column="46" selection-start-line="268" selection-start-column="46" selection-end-line="268" selection-end-column="46" />
+            <state relative-caret-position="119">
+              <caret line="7" column="7" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
               <folding>
-                <element signature="e#0#97#0" expanded="true" />
+                <element signature="e#722#8869#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/cut_creation.py">
+        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan_rhd_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-31">
+            <state relative-caret-position="765">
+              <caret line="51" column="42" selection-start-line="51" selection-start-column="42" selection-end-line="51" selection-end-column="42" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/gui_utils.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="17">
+              <caret line="2" selection-start-line="2" selection-end-line="2" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -129,11 +125,12 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/ChooseDirectory.py">
+        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/batch_functions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-31">
+            <state relative-caret-position="2312">
+              <caret line="143" column="45" selection-start-line="143" selection-start-column="45" selection-end-line="143" selection-end-column="45" />
               <folding>
-                <element signature="e#0#35#0" expanded="true" />
+                <element signature="e#0#25#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -150,36 +147,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>QTh</find>
-      <find>notch_filter</find>
-      <find>QThread</find>
-      <find>setText</find>
-      <find>pre_spike</find>
-      <find>self.run_btn</find>
-      <find>BatchAnalyze</find>
-      <find>mask_threshold</find>
-      <find>convert_intan_mountainsort</find>
-      <find>write_tetrode_data</find>
-      <find>session_parameters</find>
-      <find>tetrode_map</find>
-      <find>Fs</find>
-      <find>axona_refs</find>
-      <find>channel_scalar8s</find>
-      <find>overwrite_set_parameter</find>
-      <find>clip</find>
-      <find>clips</find>
-      <find>get_session_parameters</find>
-      <find>eeg_channels_to_filenames</find>
-      <find>intanref</find>
-      <find>clip_filename</find>
-      <find>convert_set</find>
-      <find>intanref2</find>
-      <find>gain</find>
       <find>overwrite_set</find>
       <find>return</find>
-      <find>tintRef2intan</find>
       <find>intanRef2tint</find>
       <find>overwrite_set_parameters</find>
+      <find>overwrite_set_p</find>
+      <find>write_tetrode_data</find>
+      <find>get_tetrode_parameters</find>
+      <find>tetrode_channels</find>
+      <find>tetrode_channels =</find>
+      <find>data = data</find>
+      <find>batch_add_tetrode_headers</find>
+      <find>Fs</find>
+      <find>create_eeg</find>
+      <find>data, _</find>
+      <find>convert_eeg</find>
+      <find>tetrode</find>
+      <find>session_files</find>
+      <find>get_intan_data</find>
+      <find>desired_Fs</find>
+      <find>intan2mda</find>
+      <find>tintRef2intan</find>
+      <find>'auto'</find>
+      <find>reref_channels</find>
+      <find>Reference channel chosen during session.</find>
+      <find>notch_filt</find>
+      <find>sca</find>
+      <find>scalar</find>
+      <find>scalar16</find>
+      <find>get_setfile_parameter</find>
+      <find>astype</find>
     </findStrings>
     <replaceStrings>
       <replace>sleep 1</replace>
@@ -244,20 +241,20 @@
         <option value="$PROJECT_DIR$/IntanMSGUI/main.py" />
         <option value="$PROJECT_DIR$/IntanMSGUI/core/convert_position.py" />
         <option value="$PROJECT_DIR$/IntanMSGUI/core/default_parameters.py" />
-        <option value="$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py" />
-        <option value="$PROJECT_DIR$/IntanMSGUI/core/eeg_conversion.py" />
         <option value="$PROJECT_DIR$/IntanMSGUI/core/intan_mountainsort.py" />
         <option value="$PROJECT_DIR$/IntanMSGUI/core/rhd_utils.py" />
         <option value="$PROJECT_DIR$/IntanMSGUI/core/batch_functions.py" />
         <option value="$PROJECT_DIR$/IntanMSGUI/core/set_conversion.py" />
+        <option value="$PROJECT_DIR$/IntanMSGUI/core/eeg_conversion.py" />
+        <option value="$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="257" />
-    <option name="y" value="269" />
-    <option name="width" value="1932" />
-    <option name="height" value="1045" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1936" />
+    <option name="height" value="1176" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -292,7 +289,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://C:/Users/Taub Institute/Documents/Code/Python/VirtualMazeGUI/core/MazeInterface.py" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../hfoGUI" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../BatchTINTV3" />
     <property name="settings.editor.selected.configurable" value="pyconsole" />
   </component>
   <component name="PyConsoleOptionsProvider">
@@ -707,15 +704,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan_rhd_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-31">
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/mdaSort.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="261">
@@ -755,23 +743,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="922">
           <caret line="123" selection-start-line="123" selection-end-line="123" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="290">
-          <caret line="412" column="35" selection-start-line="412" selection-start-column="22" selection-end-line="412" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#316#694#0" />
-            <element signature="e#758#1992#0" />
-            <element signature="e#2090#5053#0" />
-            <element signature="e#5233#7741#0" />
-            <element signature="e#18922#20178#0" />
-            <element signature="e#20217#20442#0" />
-            <element signature="e#20517#21211#0" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -840,13 +811,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/batch_functions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="53" selection-start-line="5" selection-start-column="40" selection-end-line="5" selection-end-column="53" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/ChooseDirectory.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-31">
@@ -856,36 +820,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/convert_position.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-14">
-          <caret line="152" column="90" selection-start-line="152" selection-start-column="90" selection-end-line="152" selection-end-column="90" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/cut_creation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-31">
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/default_parameters.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-14">
-          <caret line="38" column="1" lean-forward="true" selection-start-line="38" selection-start-column="1" selection-end-line="38" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/gui_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="21" column="50" lean-forward="true" selection-start-line="21" selection-start-column="50" selection-end-line="21" selection-end-column="50" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
@@ -901,42 +838,104 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/convert_position.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="953">
-          <caret line="268" column="46" selection-start-line="268" selection-start-column="46" selection-end-line="268" selection-end-column="46" />
+        <state relative-caret-position="3213">
+          <caret line="197" selection-start-line="197" selection-end-line="197" />
           <folding>
-            <element signature="e#0#97#0" expanded="true" />
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/default_parameters.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="646">
+          <caret line="38" column="1" selection-start-line="38" selection-start-column="1" selection-end-line="38" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/set_conversion.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11866">
+          <caret line="707" column="27" selection-start-line="707" selection-start-column="27" selection-end-line="707" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan_mountainsort.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="451">
-          <caret line="366" column="61" lean-forward="true" selection-start-line="366" selection-start-column="61" selection-end-line="366" selection-end-column="61" />
+        <state relative-caret-position="4318">
+          <caret line="265" selection-start-line="265" selection-end-line="265" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan_rhd_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="765">
+          <caret line="51" column="42" selection-start-line="51" selection-start-column="42" selection-end-line="51" selection-end-column="42" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/gui_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="2" selection-start-line="2" selection-end-line="2" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/batch_functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2312">
+          <caret line="143" column="45" selection-start-line="143" selection-start-column="45" selection-end-line="143" selection-end-column="45" />
+          <folding>
+            <element signature="e#0#25#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="7" selection-start-line="7" selection-start-column="7" selection-end-line="7" selection-end-column="7" />
+          <folding>
+            <element signature="e#722#8869#0" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/eeg_conversion.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="595">
-          <caret line="35" column="7" lean-forward="true" selection-start-line="35" selection-start-column="7" selection-end-line="35" selection-end-column="7" />
+        <state relative-caret-position="321">
+          <caret line="102" column="24" selection-start-line="102" selection-start-column="18" selection-end-line="102" selection-end-column="24" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/set_conversion.py">
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="763">
-          <caret line="746" column="9" selection-start-line="746" selection-start-column="9" selection-end-line="746" selection-end-column="9" />
+        <state relative-caret-position="304">
+          <caret line="419" lean-forward="true" selection-start-line="419" selection-end-line="419" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#758#1992#0" />
+            <element signature="e#2090#5053#0" />
+            <element signature="e#5233#7741#0" />
+            <element signature="e#18922#20178#0" />
+            <element signature="e#20217#20442#0" />
           </folding>
         </state>
       </provider>

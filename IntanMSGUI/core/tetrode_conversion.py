@@ -388,12 +388,14 @@ def convert_tetrode(filt_filename, data_filename, output_basename, Fs, pre_spike
         cell_data = data_output[:, clip_indices]
 
         # converting data to 8 bit with a max half scale of 1500mV
-        cell_data = (cell_data / channel_scalar8s).astype(int)
+        cell_data = (cell_data / channel_scalar8s)
         # cell_data = np.divide(cell_data, 256).astype(int)  # converting from int16 back to int8
 
         # ensuring that the data is within the right integer range
         cell_data[np.where(cell_data > 127)] = 127
         cell_data[np.where(cell_data < -128)] = -128
+
+        cell_data = cell_data.astype(np.int8)
 
         tetrode_clip = {'gain': channel_gains, 'clip_value': channel_clip, 'scalar8bit': channel_scalar8s,
                         'scalar16bit': channel_scalar16s}
@@ -481,6 +483,7 @@ def convert_tetrode(filt_filename, data_filename, output_basename, Fs, pre_spike
             spike_bool = np.where((spike_times + post_spike < max_n) * (spike_times - pre_spike >= 0))[0]
 
             spike_times = None
+            data_output = None
             cell_numbers = cell_numbers[spike_bool]
 
         create_cut(cut_filename, clu_filename, cell_numbers, tetrode, tint_basename, output_basename, self=self)

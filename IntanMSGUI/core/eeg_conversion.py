@@ -98,14 +98,19 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
         missing_samples = np.tile(np.array([0]), (1, missing_samples))
         data = np.hstack((data, missing_samples))
 
+    # ------------------------------------- clipping data ---------------------------------------------
     # data = np.rint(data)  # convert the data to integers
     # data = data.astype(np.int32)  # convert the data to integers
     # converting the data from uV to int16
-    data = (data / scalar16).astype(np.int16)
+    data = (data / scalar16)
 
     # ensuring the appropriate range of the values
     data[np.where(data > 32767)] = 32767
     data[np.where(data < -32768)] = -32768
+
+    data = data.astype(np.int16)
+
+    # -----------------------------------------------------------------------------------------------
 
     msg = '[%s %s]: Downsampling the EEG data to 250 Hz!' % \
         (str(datetime.datetime.now().date()),
@@ -119,6 +124,16 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
     # now apply lowpass at 125 hz to prevent aliasing of EEG
     # this uses a 101 tap von hann filter @ 125 Hz
     data, N = fir_hann(data, Fs_EGF, 125, n_taps=101, showresponse=0)
+
+    # ---------------------------------------- clipping data ------------------------------------------------------
+    # converting the data from uV to int16
+    # data = (data / scalar16).astype(np.int16)
+
+    # ensuring the appropriate range of the values
+    # data[np.where(data > 32767)] = 32767
+    # data[np.where(data < -32768)] = -32768
+
+    # --------------------------------------------------------------------------------------------------------------
 
     data = int16toint8(data)
 
@@ -348,11 +363,13 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
     # data = np.rint(data)  # convert the data to integers
     # data = data.astype(np.int32)  # convert the data to integers
     # converting the data from uV to int16
-    data = (data / scalar16).astype(np.int16)
+    data = (data / scalar16)
 
     # ensuring the appropriate range of the values
     data[np.where(data > 32767)] = 32767
     data[np.where(data < -32768)] = -32768
+
+    data = data.astype(np.int16)
 
     # data is already in int16 which is what the final unit should be in
 
@@ -408,8 +425,6 @@ def get_eeg_channels(probe_map, directory, output_basename, channels='all'):
 def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_channels='first', self=None):
     """
     This method will create all the eeg and egf files
-
-
     """
     directory = os.path.dirname(session_files[0])
 
@@ -551,7 +566,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                 eeg_filename = eeg_filenames[i]
                 egf_filename = egf_filenames[i]
                 channel_number = eeg_channels[i]
-                channel_i = np.where(tetrode_channels == channel_number)[0]
+                channel_i = np.where(np.asarray(tetrode_channels) == channel_number)[0]
 
                 if os.path.exists(eeg_filename):
 

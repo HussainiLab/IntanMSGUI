@@ -5,6 +5,8 @@ import json
 from core.utils import find_sub
 from core.rhd_utils import tetrode_map, tintRef2intan
 from core.intan_rhd_functions import find_basename_files, get_probe_name
+from core.default_parameters import masked_chunk_size, eeg_channels, mask_num_write_chunks, clip_size, rejthreshtail, \
+    rejstart, rejthreshupper, rejthreshlower, positionSampleFreq, axona_refs, clip_scalar, reref_channels
 import numpy as np
 
 # TODO: Add Parameters officially
@@ -186,8 +188,8 @@ def BatchAnalyze(main_window, settings_window, directory):
 
                         detect_sign = settings_window.detect_sign
 
-                        detect_threshold = settings_window.detect_threshold_widget.value()
-                        detect_interval = settings_window.detect_interval_widget.value()
+                        detect_threshold = float(settings_window.detect_threshold_widget.text())
+                        detect_interval = int(settings_window.detect_interval_widget.text())
 
                         main_window.LogAppend.myGUI_signal_str.emit(
                             '[%s %s]: Analyzing the following basename: %s!' % (
@@ -195,13 +197,38 @@ def BatchAnalyze(main_window, settings_window, directory):
                                 str(datetime.datetime.now().time())[
                                 :8], rhd_session_file))
 
-                        interpolation = settings_window.interpolation.isChecked()
+                        interpolation = settings_window.interpolate_cb.isChecked()
                         freq_min = float(settings_window.lower_cutoff.text())
                         freq_max = float(settings_window.upper_cutoff.text())
                         mask_threshold = float(settings_window.mask_threshold.text())
                         flip_sign = settings_window.flip_sign.isChecked()
                         software_rereference = settings_window.software_rereference.isChecked()
-                        reref_method = settings_window.reref_method.value()
+                        reref_method = settings_window.reref_method_combo.currentText()
+                        mask = settings_window.mask.isChecked()
+
+                        notch_filter = settings_window.notch_filter.isChecked()
+
+                        desired_Fs = float(settings_window.interpolate_Fs.text())
+
+                        pre_spike_samples = settings_window.pre_threshold_widget.value()
+                        post_spike_samples = settings_window.post_threshold_widget.value()
+
+                        if pre_spike_samples + post_spike_samples != clip_size:
+                            if pre_spike_samples + post_spike_samples != clip_size:
+                                raise ValueError(
+                                    "the pre (%d) and post (%d) spike samples need to add up to the clip_size: %d." % (
+                                    pre_spike_samples,
+                                    post_spike_samples,
+                                    int(clip_size)))
+
+                        remove_spike_percentage = float(settings_window.remove_outliers_percentage.text())
+
+                        remove_outliers = settings_window.remove_outliers.isChecked()
+
+                        remove_method = settings_window.remove_method.currentText()
+
+                        num_features = int(settings_window.num_features.text())
+                        max_num_clips_for_pca = int(settings_window.max_num_clips_for_pca.text())
 
                         convert_intan_mountainsort(session_files, interpolation=interpolation, whiten=whiten,
                                                    detect_interval=detect_interval,

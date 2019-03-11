@@ -51,12 +51,12 @@ whiten = 'true'  # if you want to whiten or not, 'true' or 'false', lower case l
 # THRESHOLD
 flip_sign = True  # if you want to flip the signal (multiply by -1)
 
-detect_interval = 50  # it will split up the data into segments of this value and find a peak/trough for each segment
-detect_sign = 0  # 0 = positive and negative peaks, 1 = positive peaks, -1 = negative peaks
+detect_interval = 30  # it will split up the data into segments of this value and find a peak/trough for each segment
+detect_sign = 1  # 0 = positive and negative peaks, 1 = positive peaks, -1 = negative peaks
 
 if whiten == 'true':
     # the threshold of the data, if whitened, data is normalized to standard deviations, so a value of 3
-    detect_threshold = 4
+    detect_threshold = 3.5
     # would mean 3 standard deviations away from baseline. If not whitened treat it like a Tint threshold, i.e. X bits.
     # essentially bits vs standard deviations.
 else:

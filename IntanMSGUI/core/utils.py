@@ -33,7 +33,6 @@ def MatlabNumSeq(start, stop, step, exclude=True):
     seq = np.arange(start, stop + step, step)
 
     if exclude:
-        print('hi')
         if seq[-1] > stop:
             seq = seq[:-1]
 

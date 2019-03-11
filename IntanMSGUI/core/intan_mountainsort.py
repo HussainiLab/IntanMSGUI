@@ -364,7 +364,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
     if set_converted or eeg_converted:
         # then we will overwrite the eeg filename parameters that were set since it is not taken care of in the
         # initial convert_setfile() function. We will only do this if a .set file or .eeg file is newly created
-        overwrite_eeg_set_params(tint_basename, set_filename)
+        overwrite_eeg_set_params(tint_fullpath, set_filename)
 
     # clean up any files to save space
     if mask:

@@ -566,7 +566,7 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
                 eeg_filename = eeg_filenames[i]
                 egf_filename = egf_filenames[i]
                 channel_number = eeg_channels[i]
-                channel_i = np.where(np.asarray(tetrode_channels) == channel_number)[0]
+                channel_i = np.where(np.asarray(tetrode_channels) == channel_number)[0][0]
 
                 if os.path.exists(eeg_filename):
 

@@ -5,6 +5,7 @@ import numpy as np
 import json
 import core.intan_rhd_functions as load_rhd
 from core.utils import session_datetime
+from core.set_conversion import overwrite_set_parameter
 import shutil
 import time
 
@@ -37,8 +38,12 @@ def pos2hz(t, x, y, start=None, stop=None, Fs=50):
         start = 0
     if stop is None:
         stop = np.amax(t)
-    step = 1 / Fs  # 50 Hz sample rate
-    post = MatlabNumSeq(start, stop, step, exclude=True)
+    # step = 1 / Fs  # 50 Hz sample rate
+    # post = MatlabNumSeq(start, stop, step, exclude=True)
+
+    duration = stop - start
+    n = duration * Fs
+    post = np.arange(n) / Fs + start
 
     posx = np.zeros_like(post)
     posy = np.zeros_like(post)
@@ -89,27 +94,35 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
     file_header = load_rhd.read_header(session_files[0])  # read the file header information from a session file
     recording_Fs = int(file_header['sample_rate'])
 
-    digital_input = False
+    AD_input = False
 
     # check if there are digital inputs in the intan system that will be used to sync behavior w/ ephys data
-    if file_header['num_board_dig_in_channels'] > 0:
-        # then we have the digital values
+    if file_header['num_board_dig_in_channels'] > 0 or file_header['num_board_adc_channels'] > 0:
+        # then we have the analog/digitaldigital values
 
-        # reading the digital values #
+        # reading the analog/digital values #
         data_digital_in = np.array([])
+        data_analog_in = np.array([])
         for session_file in sorted(session_files, reverse=False):
             # Loads each session and appends them to create one matrix of data for the current tetrode
             # file_data = load_rhd.read_data(session_file)  # loading the .rhd data
-            file_data = load_rhd.read_data(session_file)
+            file_data = load_rhd.read_data(session_file, include_digital=True, include_analog=True, include_ephys=False)
 
             # Acquiring session information
+            if file_header['num_board_dig_in_channels'] > 0:
+                if data_digital_in.shape[0] == 0:
+                    data_digital_in = file_data['board_dig_in_data']
+                else:
+                    data_digital_in = np.concatenate((data_digital_in, file_data['board_dig_in_data']), axis=1)
 
-            if data_digital_in.shape[0] == 0:
-                data_digital_in = file_data['board_dig_in_data']
-            else:
-                data_digital_in = np.concatenate((data_digital_in, file_data['board_dig_in_data']), axis=1)
+            if file_header['num_board_adc_channels'] > 0:
+                if data_analog_in.shape[0] == 0:
+                    data_analog_in = file_data['board_adc_data']
+                else:
+                    data_analog_in = np.concatenate((data_analog_in, file_data['board_adc_data']), axis=1)
 
-        start_index, stop_index = load_rhd.get_data_limits(directory, tint_basename, data_digital_in, self=self)
+        start_index, stop_index = load_rhd.get_data_limits(directory, tint_basename, data_digital_in, data_analog_in,
+                                                           self=self)
 
         if start_index is not None and stop_index is not None:
 
@@ -117,16 +130,16 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
             start = 0
             stop = start + duration
 
-            digital_input = True
+            AD_input = True
 
-            posx, posy, post = pos2hz(t, x, y, start=start, stop=stop - 1 / 50)
+            posx, posy, post = pos2hz(t, x, y, start=start, stop=stop)
 
             positions = np.vstack((posx, posy, post)).T
 
             # the appropriate digital values were found, use the new get sync function
             window_values, original_positions, positions = sync_positions_with_pulse(positions, arena)
 
-    if not digital_input:
+    if not AD_input:
         # then somehow the start and stop values were not recorded, use the old technique for synchronizing
         # the behavior with the ephys
         if 'maze_start_time' not in settings.keys():
@@ -149,8 +162,8 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
 
     # we need to flip the y values for Tint, so we will need to flip and then add the minimum to make the min y whatever
     # the value is before you flip the y axis
-    current_y_min = np.amin(positions[:, 2])
-    positions[:, 2] = -positions[:, 2] + -np.amin(positions[:, 2], axis=0) + current_y_min
+    current_y_min = np.amin(positions[:, 1])
+    positions[:, 1] = -positions[:, 1] + -np.amin(positions[:, 1], axis=0) + current_y_min
 
     pix_per_meter = settings['Pixels Per Meter(PPM): ']
     # min_x, max_x, min_y, max_y, window_min_x, window_max_x, window_min_y, window_max_y = window_values
@@ -158,6 +171,12 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
     try:
         n_samples = int(len(positions))
         duration = int(n_samples / 50)
+
+        set_filename = os.path.join(directory, tint_basename + '.set')  # defining the name of the most recent .pos file
+        if os.path.exists(set_filename):
+            # ensure that the set file has the proper duration
+            print(set_filename)
+            overwrite_set_parameter(set_filename, 'duration', str(duration))
 
         # --------------- write position file --------------
         with open(pos_fpath, 'wb+') as f:  # opening the .pos file
@@ -280,6 +299,13 @@ def get_window_values(positions, arena):
         window_max_y = 160
 
     elif arena == 'Linear Track':
+        # linear track is 32 pixels wide and 400 pixels long
+        window_min_x = 0
+        window_min_y = 0
+        window_max_x = 32
+        window_max_y = 400
+
+    elif arena == 'Parallel Linear Global Track' or arena == 'Parallel Linear Rate Track':
         # linear track is 32 pixels wide and 400 pixels long
         window_min_x = 0
         window_min_y = 0
@@ -508,6 +534,7 @@ def convert_position(session_files, position_filename, positionSampleFreq, outpu
 
 
 def get_position_duration(position_filename):
+    duration = None
     with open(position_filename, 'rb+') as f:  # opening the .pos file
         for line in f:
             if 'duration' in str(line):

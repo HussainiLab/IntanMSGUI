@@ -27,14 +27,16 @@ tetrode_map = {'buzsaki32': {1: [5, 4, 6, 3],
                                3: [1, 3, 5, 7],
                                4: [2, 4, 6, 8]
                                },
-               """
-               'axona16_new': {1: [1, 2, 3, 4],
-                               2: [5, 6, 7, 8],
-                               3: [9, 10, 11, 12],
-                               4: [13, 14, 15, 16]
-                               },""" 
 
-               'axona32_angled': {},
+               'axona32': {1: [16, 14, 12, 10],
+                           2: [15, 13, 11, 9],
+                           3: [18, 20, 22, 24],
+                           4: [17, 19, 21, 23],
+                           5: [2, 4, 6, 8],
+                           6: [1, 3, 5, 7],
+                           7: [32, 30, 28, 26],
+                           8: [31, 29, 27, 25],
+                           },
                }
 
 
@@ -91,7 +93,7 @@ def intan_scalar():
     return (1e6) * (Vswing) / (bit_range * gain)
 
 
-def read_notes(notes, tetrode_map):
+def read_notes(notes, tetrode_map, default_probe='axona16_new'):
     probe = None
     experimenter = ''
     # reads through the notes to find useful information
@@ -107,7 +109,6 @@ def read_notes(notes, tetrode_map):
                 experimenter = note_val
 
     if probe is None:
-        # probe = 'axona16_angled'
-        probe = 'axona16_new'
+        probe = default_probe
 
     return probe, experimenter

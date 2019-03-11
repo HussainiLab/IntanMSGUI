@@ -178,7 +178,7 @@ class SettingsWindow(QtWidgets.QWidget):  # defines the settings_window
         self.remove_method.addItem("mean")
         self.remove_method.setCurrentIndex(self.remove_method.findText(remove_method))
 
-        self.okay_button = QtWidgets.QPushButton("Confirm")
+        self.ApplyBtn = QtWidgets.QPushButton("Apply")
 
         # adding the widgets to the main window
         ms_settings_layout = QtWidgets.QVBoxLayout()
@@ -191,9 +191,6 @@ class SettingsWindow(QtWidgets.QWidget):  # defines the settings_window
 
         settings_layers = [settings_layer1, settings_layer2, settings_layer3, settings_layer4, settings_layer5,
                            button_layout]
-
-        # for layer in settings_layers:
-        #    layer.addStretch(1)
 
         layer1_widgets = [lower_cutoff_layout, upper_cutoff_layout, self.notch_filter]
 
@@ -208,18 +205,17 @@ class SettingsWindow(QtWidgets.QWidget):  # defines the settings_window
 
         layer5_widgets = [self.interpolate_cb, interpolate_layout, self.flip_sign, self.whiten_cb]
 
-        button_widgets = [self.okay_button]
+        button_widgets = [self.ApplyBtn]
 
         layer_widgets = [layer1_widgets, layer2_widgets, layer3_widgets, layer4_widgets, layer5_widgets, button_widgets]
 
+        layer = None
         for layer, widgets in zip(settings_layers, layer_widgets):
             for widget in widgets:
                 if 'Layout' in str(widget):
                     layer.addLayout(widget)
-                    # layer.addStretch(1)
                 else:
                     layer.addWidget(widget)
-                    # layer.addStretch(1)
         layer.addStretch(1)
 
         for layer in settings_layers:

@@ -293,10 +293,8 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.Log.append(message)
 
     def stopBatch(self):
-        # self.run_btn.clicked.disconnect()
         self.run_btn.clicked.connect(lambda: self.run(self.current_directory_name))
         self.AnalyzeThread.terminate()
-        # self.RepeatAddSessionsThread.quit()
         self.run_btn.setText('Run')
         self.run_btn.setToolTip(
             'Click to perform batch analysis!')  # defining the tool tip for the start button
@@ -325,10 +323,6 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         add_to_new_queue = list(queue_items.values())
 
-        # add_to_new_queue = self.directory_queue.items
-        # for i in range(len(selected_items)):
-        #     selected_items[i] = selected_items[i].clone()
-
         if not selected_items:
             # skips when there are no items selected
             return
@@ -350,14 +344,12 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                     # these items can't move up any further
                     for index in consecutive:
                         new_item = queue_items[index].clone()
-                        # new_item.setSelected(True)
                         new_queue_order[index] = new_item
 
                 else:
                     for index in consecutive:
                         # move these up the list (decrease in index value since 0 is the top of the list)
                         new_item = queue_items[index].clone()
-                        # new_item.setSelected(True)
                         new_queue_order[index-1] = new_item
 
             for key, val in new_queue_order.items():
@@ -368,9 +360,9 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
             _ = list(new_queue_order.keys())  # a list of already moved items
 
+            not_in_reordered = False
             # place the unplaced items that aren't moving
             for static_index, static_value in queue_items.items():
-                # print(static_value.data(0,0))
                 # place the unplaced items
                 if static_index in _:
                     continue
@@ -398,13 +390,11 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                     # these items can't move down any further
                     for index in consecutive:
                         new_item = queue_items[index].clone()
-                        # new_item.setSelected(True)
                         new_queue_order[index] = new_item
                 else:
                     for index in consecutive:
                         # move these down the list (increase in index value since 0 is the top of the list)
                         new_item = queue_items[index].clone()
-                        # new_item.setSelected(True)
                         new_queue_order[index + 1] = new_item
 
             for key, val in new_queue_order.items():
@@ -415,6 +405,7 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
             _ = list(new_queue_order.keys())  # a list of already moved items
 
+            not_in_reordered = False
             # place the unplaced items that aren't moving
             for static_index, static_value in queue_items.items():
                 if static_index in _:
@@ -428,7 +419,6 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                         break
 
                 if not_in_reordered:
-                    # item = queue_items[non_selected_indices.pop()]
                     for value in add_to_new_queue:
                         if static_value.data(0, 0) == value.data(0, 0):
                             add_to_new_queue.remove(value)  # remove item from the list
@@ -446,10 +436,6 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
         self.directory_queue.clear()  # clears the list
 
         for key, value in sorted(new_queue_order.items()):
-            # for item in selected_items:
-            #     if item.data(0, 0) == value.data(0, 0):
-            #         value.setSelected(True)
-
             self.directory_queue.addTopLevelItem(value)
 
         # reselect the items
@@ -461,8 +447,6 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
                     item.setSelected(True)
                     break
             iterator += 1
-        # for index in range(item_count):
-        #   self.directory_queue.takeTopLevelItem(0)
         self.reordering_queue = False
 
     def takeTopLevel(self, item_count):
@@ -502,14 +486,9 @@ class Window(QtWidgets.QWidget):  # defines the window class (main window)
 
         if not hasattr(self, 'repeat_thread_active'):
             return
-
-        # while self.repeat_thread_active:
-        #     time.sleep(0.1)
         if hasattr(self, 'RepeatAddSessionsThread'):
             self.RepeatAddSessionsThread.terminate()
 
-        # self.reset_add_thread = False
-        # self.RepeatAddSessionsThread = QtCore.QThread()
         self.RepeatAddSessionsThread.setTerminationEnabled(True)
         self.RepeatAddSessionsThread.start()
 
@@ -528,7 +507,7 @@ def find_keys(my_dictionary, value):
 
 
 def find_consec(data):
-    '''finds the consecutive numbers and outputs as a list'''
+    """finds the consecutive numbers and outputs as a list"""
     consecutive_values = []  # a list for the output
     current_consecutive = [data[0]]
 
@@ -604,8 +583,10 @@ class Worker(QtCore.QObject):
 
 
 class Communicate(QtCore.QObject):
-    '''A custom pyqtsignal so that errors and popups can be called from the threads
-    to the main window'''
+    """
+    A custom pyqtsignal so that errors and popups can be called from the threads
+    to the main window
+    """
     myGUI_signal_str = QtCore.pyqtSignal(str)
     myGUI_signal_QTreeWidgetItem = QtCore.pyqtSignal(QtWidgets.QTreeWidgetItem)
 
@@ -647,7 +628,7 @@ def run():
     main_w.choose_directory.clicked.connect(lambda: raise_window(choose_dir_w,main_w))
 
     main_w.settings_btn.clicked.connect(lambda: raise_window(settings_w, main_w))
-    settings_w.okay_button.clicked.connect(lambda: raise_window(main_w, settings_w))
+    settings_w.ApplyBtn.clicked.connect(lambda: raise_window(main_w, settings_w))
     # main_w.choose_directory.clicked.connect(lambda: raise_window(choose_dir_w))
 
     # brings the main window to the foreground

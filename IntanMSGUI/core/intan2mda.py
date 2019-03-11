@@ -57,10 +57,13 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
     if channel is None:
         for tetrode, tetrode_channels in sorted(probe_map.items()):
             channel_list.extend(tetrode_channels)  # keep track of which channels were
-            data, _, data_digital_in = get_intan_data(session_files, tetrode_channels, tetrode)
+            data, _, data_digital_in, data_analog_in = get_intan_data(session_files, tetrode_channels, tetrode,
+                                                                      analog_data=True,
+                                                                      digital_data=True,
+                                                                      ephys_data=True)
 
             if file_header['num_board_dig_in_channels'] > 0:
-                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in)
+                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
 
                 if start_index is not None and stop_index is not None:
                     data = data[:, start_index:stop_index]
@@ -101,12 +104,15 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
             # other channels and the 2nd lowest will be subtracted from the channel with the 1st lowest.
             reref_channels = channel_list[rank[:2]]
 
-            data, _, data_digital_in = get_intan_data(session_files, reref_channels, verbose=None)
+            data, _, data_digital_in, data_analog_in = get_intan_data(session_files, reref_channels, verbose=None,
+                                                                      analog_data=True,
+                                                                      digital_data=True,
+                                                                      ephys_data=True)
 
             digital_input = False
             # check if there is a start and stop index from the recorded digital events
             if file_header['num_board_dig_in_channels'] > 0:
-                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in)
+                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
 
                 # only include the appropriate data where the behavior was running
                 if start_index is not None and stop_index is not None:
@@ -154,11 +160,15 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
         if type(channel) is not list:
             channel = [channel]
 
-        data, _, data_digital_in = get_intan_data(session_files, channel, verbose=None)
+        data, _, data_digital_in, data_analog_in = get_intan_data(session_files, channel, verbose=None,
+                                                                  analog_data=True,
+                                                                  digital_data=True,
+                                                                  ephys_data=True)
+
         # check if there is a start and stop index from the recorded digital events
         digital_input = False
         if file_header['num_board_dig_in_channels'] > 0:
-            start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in)
+            start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
 
             # only include the appropriate data where the behavior was running
             if start_index is not None and stop_index is not None:
@@ -262,12 +272,13 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
             print(msg)
         # getting the duration
         for tetrode, tetrode_channels in sorted(probe_map.items()):
-            data, t_intan, data_digital_in = get_intan_data(session_files, tetrode_channels, tetrode, self,
-                                                            verbose=True)
+            _, t_intan, data_digital_in, data_analog_in = get_intan_data(session_files, tetrode_channels, tetrode, self,
+                                                                         verbose=True, analog_data=True,
+                                                                         digital_data=True, ephys_data=False)
 
             digital_inputs = False
             if file_header['num_board_dig_in_channels'] > 0:
-                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in)
+                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
 
                 if start_index is not None and stop_index is not None:
                     duration = np.floor((stop_index - start_index) / Fs_intan)
@@ -315,14 +326,18 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
             continue
 
         # get_tetrode_data
-        data, t_intan, data_digital_in = get_intan_data(session_files, tetrode_channels, tetrode, self, verbose=True)
+        data, t_intan, data_digital_in, data_analog_in = get_intan_data(session_files, tetrode_channels, tetrode, self,
+                                                                        verbose=True,
+                                                                        analog_data=True,
+                                                                        digital_data=True,
+                                                                        ephys_data=True)
 
         # splice the ephys data so that it only occured between the start and stop of the maze
         # (info that is in the digital signal)
 
         digital_inputs = False
         if file_header['num_board_dig_in_channels'] > 0:
-            start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in)
+            start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
 
             if start_index is not None and stop_index is not None:
                 duration = np.floor((stop_index - start_index) / Fs_intan)

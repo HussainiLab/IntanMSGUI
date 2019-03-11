@@ -163,7 +163,7 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
     # we need to flip the y values for Tint, so we will need to flip and then add the minimum to make the min y whatever
     # the value is before you flip the y axis
     current_y_min = np.amin(positions[:, 1])
-    positions[:, 1] = -positions[:, 1] + -np.amin(positions[:, 1], axis=0) + current_y_min
+    positions[:, 1] = -positions[:, 1] + -np.amin(-positions[:, 1], axis=0) + current_y_min
 
     pix_per_meter = settings['Pixels Per Meter(PPM): ']
     # min_x, max_x, min_y, max_y, window_min_x, window_max_x, window_min_y, window_max_y = window_values

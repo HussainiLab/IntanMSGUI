@@ -302,15 +302,15 @@ def get_window_values(positions, arena):
         # linear track is 32 pixels wide and 400 pixels long
         window_min_x = 0
         window_min_y = 0
-        window_max_x = 32
-        window_max_y = 400
+        window_max_x = 400
+        window_max_y = 32
 
     elif arena == 'Parallel Linear Global Track' or arena == 'Parallel Linear Rate Track':
         # linear track is 32 pixels wide and 400 pixels long
         window_min_x = 0
         window_min_y = 0
-        window_max_x = 32
-        window_max_y = 400
+        window_max_x = 400
+        window_max_y = 64
 
     else:
         print('The following arena has not been configured: %s, calculating center with behavior data.' % arena)

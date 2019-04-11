@@ -54,9 +54,15 @@ def write_clu(clu_filename, data):
     # without the headers, and the values go from 1 -> N instead of 0 -> N, (1-based numbering instead of 0-based). Thus
     # we add 1 to the .cut data to get the .clu data
 
-    data = np.asarray(data).astype(int)  # ensuring that the data is the integer datatype
+    data = np.asarray(data).astype(int)  # ensuring that the data is the integer data-type
 
     data += 1  # making the data 1-based instead of 0-based
+    
+    # calculating the number of clusters
+    n_clust = len(np.unique(data))
+
+    # ensuring that the cluster number is the 1st value
+    data = np.concatenate(([n_clust], data))
 
     # saving the data as a column (delimter='\n') and integer format.
     np.savetxt(clu_filename, data, fmt='%d', delimiter='\n')

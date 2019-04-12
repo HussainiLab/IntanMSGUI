@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="2f714523-24c5-45e6-b6ca-2b1dc1f1c344" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/convert_position.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/convert_position.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/core/cut_creation.py" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/core/cut_creation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IntanMSGUI/jupyter/batch_intanMS.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/jupyter/batch_intanMS.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/IntanMSGUI/jupyter/batch_batch_intanMS.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/IntanMSGUI/jupyter/batch_batch_intanMS.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,7 +17,7 @@
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/Tint_Matlab.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="406">
-              <caret line="359" column="33" lean-forward="true" selection-start-line="359" selection-start-column="33" selection-end-line="359" selection-end-column="33" />
+              <caret line="359" column="33" selection-start-line="359" selection-start-column="33" selection-end-line="359" selection-end-column="33" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
                 <element signature="e#921#1393#0" />
@@ -43,11 +41,23 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="270">
+              <caret line="111" column="33" lean-forward="true" selection-start-line="111" selection-start-column="33" selection-end-line="111" selection-end-column="33" />
+              <folding>
+                <element signature="e#0#97#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/cut_creation.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="491">
-              <caret line="60" column="40" selection-start-line="60" selection-start-column="40" selection-end-line="60" selection-end-column="40" />
+              <caret line="60" column="40" lean-forward="true" selection-start-line="60" selection-start-column="40" selection-end-line="60" selection-end-column="40" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -56,24 +66,15 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
+        <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="901">
-              <caret line="53" column="29" selection-start-line="53" selection-start-column="29" selection-end-line="53" selection-end-column="29" />
+            <state relative-caret-position="219">
+              <caret line="244" selection-start-line="244" selection-end-line="244" />
               <folding>
-                <element signature="e#0#97#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/IntanMSGUI/main.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4828">
-              <caret line="284" column="51" selection-start-line="284" selection-start-column="51" selection-end-line="284" selection-end-column="51" />
-              <folding>
-                <element signature="e#0#26#0" expanded="true" />
+                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#758#1992#0" />
+                <element signature="e#2090#5053#0" />
+                <element signature="e#5233#7741#0" />
               </folding>
             </state>
           </provider>
@@ -147,7 +148,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>write_eeg</find>
       <find>create</find>
       <find>session_item</find>
       <find>the following</find>
@@ -157,7 +157,6 @@
       <find>def get_intan_data</find>
       <find>write</find>
       <find>rewrite</find>
-      <find>get_data_limits</find>
       <find>rewrite_pos</find>
       <find>overwrite_set</find>
       <find>pos2hz</find>
@@ -177,6 +176,8 @@
       <find>append</find>
       <find>find</find>
       <find>write_clu</find>
+      <find>get_intan</find>
+      <find>get_data_limits</find>
     </findStrings>
     <replaceStrings>
       <replace>sleep 1</replace>
@@ -469,7 +470,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1176" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1176" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.170706" />
@@ -815,33 +816,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="735">
-          <caret line="424" selection-start-line="424" selection-end-line="424" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#758#1992#0" />
-            <element signature="e#2090#5053#0" />
-            <element signature="e#5233#7741#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/wsl_terminal.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-14">
           <caret line="5" column="67" lean-forward="true" selection-start-line="5" selection-start-column="67" selection-end-line="5" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="901">
-          <caret line="53" column="29" selection-start-line="53" selection-start-column="29" selection-end-line="53" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#97#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -915,7 +893,7 @@
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/Tint_Matlab.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="406">
-          <caret line="359" column="33" lean-forward="true" selection-start-line="359" selection-start-column="33" selection-end-line="359" selection-end-column="33" />
+          <caret line="359" column="33" selection-start-line="359" selection-start-column="33" selection-end-line="359" selection-end-column="33" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
             <element signature="e#921#1393#0" />
@@ -926,10 +904,33 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/tetrode_conversion.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="219">
+          <caret line="244" selection-start-line="244" selection-end-line="244" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#758#1992#0" />
+            <element signature="e#2090#5053#0" />
+            <element signature="e#5233#7741#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/intan2mda.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="111" column="33" lean-forward="true" selection-start-line="111" selection-start-column="33" selection-end-line="111" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#97#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/IntanMSGUI/core/cut_creation.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="491">
-          <caret line="60" column="40" selection-start-line="60" selection-start-column="40" selection-end-line="60" selection-end-column="40" />
+          <caret line="60" column="40" lean-forward="true" selection-start-line="60" selection-start-column="40" selection-end-line="60" selection-end-column="40" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>

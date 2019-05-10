@@ -21,7 +21,7 @@ def compute_ranking(values, mode='descending'):
     return ranking, order
 
 
-def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
+def get_reref_data(session_files, probe_map, channel=None, mode='sd', start_index=None, stop_index=None):
     """
     This will get channel data for software re-referencing. Typically this will remove common data between the different
     channels, such as that which could be caused from motion artifact. Likely you will want to choose a channel with
@@ -36,6 +36,9 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
     if mode is 'avg':
         In the common mode removal process we will take the average of all the channels and use this value to subtract
         the common signal from each of the channels.
+
+    start_index and stop_index are used to sync the ephys with the behavior. It will be the index value
+    that represents the start and end of the behavior
     """
     # keep track of the channels
     channel_list = []
@@ -51,40 +54,33 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
     if type(Fs_intan) == np.ndarray:
         Fs_intan = Fs_intan[0]
 
-    tint_basename = os.path.basename(os.path.splitext(sorted(session_files, reverse=False)[0])[0])
-    directory = os.path.dirname(session_files[0])
-
     if channel is None:
+        # read each tetrode and calculate the avg/sd depending on the mode
         for tetrode, tetrode_channels in sorted(probe_map.items()):
             channel_list.extend(tetrode_channels)  # keep track of which channels were
-            data, _, data_digital_in, data_analog_in = get_intan_data(session_files, tetrode_channels, tetrode,
-                                                                      analog_data=True,
-                                                                      digital_data=True,
-                                                                      ephys_data=True)
 
-            if file_header['num_board_dig_in_channels'] > 0:
-                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
+            if mode == 'sd' or mode == 'avg':
+                data, _, _, _ = get_intan_data(session_files, tetrode_channels, tetrode,
+                                               analog_data=False, digital_data=False, ephys_data=True)
 
                 if start_index is not None and stop_index is not None:
                     data = data[:, start_index:stop_index]
 
-            if mode == 'sd':
-                # calculate standard deviations for each channel as a measure of how quiet the channel is
-                if len(channel_std) == 0:
-                    channel_std = np.std(data, axis=1)
-                else:
-                    channel_std = np.r_[channel_std, np.std(data, axis=1)]
-            elif mode == 'avg':
-                # calculate the averages for the channel, we'll sum them here and divide by n_channels later
-                num_channels += data.shape[0]
+                if mode == 'sd':
+                    # calculate standard deviations for each channel as a measure of how quiet the channel is
+                    if len(channel_std) == 0:
+                        channel_std = np.std(data, axis=1)
+                    else:
+                        channel_std = np.r_[channel_std, np.std(data, axis=1)]
+                elif mode == 'avg':
+                    # calculate the averages for the channel, we'll sum them here and divide by n_channels later
+                    num_channels += data.shape[0]
 
-                if len(channel_avg) == 0:
-                    channel_avg = np.sum(data, axis=0)
-                else:
-                    channel_avg += np.sum(data, axis=0)
-
-            data = None
-            data_digital_in = None
+                    if len(channel_avg) == 0:
+                        channel_avg = np.sum(data, axis=0)
+                    else:
+                        channel_avg += np.sum(data, axis=0)
+                data = None
 
         if mode == 'sd':
 
@@ -104,31 +100,15 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
             # other channels and the 2nd lowest will be subtracted from the channel with the 1st lowest.
             reref_channels = channel_list[rank[:2]]
 
-            data, _, data_digital_in, data_analog_in = get_intan_data(session_files, reref_channels, verbose=None,
-                                                                      analog_data=True,
-                                                                      digital_data=True,
-                                                                      ephys_data=True)
+            data, _, _, _ = get_intan_data(session_files, reref_channels, verbose=None,
+                                           analog_data=False, digital_data=False, ephys_data=True)
 
-            digital_input = False
-            # check if there is a start and stop index from the recorded digital events
-            if file_header['num_board_dig_in_channels'] > 0:
-                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
+            # only include the appropriate data where the behavior was running
+            if start_index is not None and stop_index is not None:
+                data = data[:, start_index:stop_index]
 
-                # only include the appropriate data where the behavior was running
-                if start_index is not None and stop_index is not None:
-                    duration = np.floor((stop_index - start_index) / Fs_intan)
-                    # we floor the value so we can have a integer value for the duration
-                    n = int(duration * Fs_intan)
-
-                    # creating a new stop_index with the new number of samples that will
-                    # allow for the rounded integer value duration
-                    stop_index = start_index + n
-
-                    digital_input = True
-                    data = data[:, start_index:stop_index]
-
-            if not digital_input:
-
+            else:
+                # then there is no start and stop signal, just bind the data so that it is at an even numbered duration
                 duration = data.shape[1] / Fs_intan  # duration value that would be reported in the .pos/.set settings
                 if type(duration) == np.ndarray:
                     duration = duration[0]  # the following is_integer() method does not work in an ndarray
@@ -156,34 +136,20 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
             return channel_avg
 
     else:
+        # the channels were chosen
 
         if type(channel) is not list:
             channel = [channel]
 
-        data, _, data_digital_in, data_analog_in = get_intan_data(session_files, channel, verbose=None,
-                                                                  analog_data=True,
-                                                                  digital_data=True,
-                                                                  ephys_data=True)
+        data, _, _, _ = get_intan_data(session_files, channel, verbose=None,
+                                       analog_data=False, digital_data=False, ephys_data=True)
 
-        # check if there is a start and stop index from the recorded digital events
-        digital_input = False
-        if file_header['num_board_dig_in_channels'] > 0:
-            start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
+        # only include the appropriate data where the behavior was running
+        if start_index is not None and stop_index is not None:
+            data = data[:, start_index:stop_index]
 
-            # only include the appropriate data where the behavior was running
-            if start_index is not None and stop_index is not None:
-                duration = np.floor((stop_index - start_index) / Fs_intan)
-                # we floor the value so we can have a integer value for the duration
-                n = int(duration * Fs_intan)
-
-                # creating a new stop_index with the new number of samples that will
-                # allow for the rounded integer value duration
-                stop_index = start_index + n
-
-                digital_input = True
-                data = data[:, start_index:stop_index]
-
-        if not digital_input:
+        else:
+            # there were no start and stop signals
 
             duration = data.shape[1] / Fs_intan  # duration value that would be reported in the .pos/.set settings
             if type(duration) == np.ndarray:
@@ -207,7 +173,7 @@ def get_reref_data(session_files, probe_map, channel=None, mode='sd'):
 
 def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=True, notch_freq=60,
               flip_sign=True, software_rereference=False, reref_channels=None, reref_data=None,
-              reref_method=None, self=None):
+              reref_method=None, start_index=None, stop_index=None, self=None):
     """
         This function convert the intan ata into the .mda format that MountainSort requires.
 
@@ -219,12 +185,14 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
         Args:
             tetrode_files (list): list of the fullpaths to the tetrode files belonging to the session you want to
                 convert.
-            desired_Fs (int): the sampling rate that you want the data to be at. I've added this because we generally
+            desired_Fs (float): the sampling rate that you want the data to be at. I've added this because we generally
                 record at 24k but we will convert to a 48k signal (the system we analyze w/ needs 48k).
             directory (string): the path of the directory the session and tetrode files are in.
             basename (string): the basename of the session you are converting.
             pre_threshold (int): the number of samples before the threshold that you want to save in the waveform
             post_threshold (int): the number of samples after the threshold that you want to save in the waveform
+            start_index (int): This will represent the index of the ephys data that the behavior started
+            stop_index (int): This will represent the idnex of the ephys data that the behavior ended
             self (object): self is the main window of a GUI that has a LogAppend method that will append this message to
                 a log (QTextEdit), and a custom signal named myGUI_signal_str that would was hooked up to LogAppend to
                 append messages to the log.
@@ -253,6 +221,8 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
 
     converted_files = 0
     n_tetrodes = 0
+
+    # determine if the files have already been converted
     for tetrode, tetrode_channels in sorted(probe_map.items()):
 
         mda_filename = '%s_T%d_raw.mda' % (os.path.join(directory, tint_basename), tetrode)
@@ -263,6 +233,7 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
         n_tetrodes += 1
 
     if n_tetrodes == converted_files:
+        # all the tetrodes have been converted, return the recording duration
         msg = '[%s %s]: All the tetrodes have already been created, skipping!' % \
               (str(datetime.datetime.now().date()),
                str(datetime.datetime.now().time())[:8])
@@ -272,19 +243,14 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
             print(msg)
         # getting the duration
         for tetrode, tetrode_channels in sorted(probe_map.items()):
-            _, t_intan, data_digital_in, data_analog_in = get_intan_data(session_files, tetrode_channels, tetrode, self,
-                                                                         verbose=True, analog_data=True,
-                                                                         digital_data=True, ephys_data=False)
+            _, t_intan, _, _ = get_intan_data(session_files, tetrode_channels, tetrode, self,
+                                              verbose=True, analog_data=False, digital_data=False, ephys_data=False)
 
-            digital_inputs = False
-            if file_header['num_board_dig_in_channels'] > 0:
-                start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
+            if start_index is not None and stop_index is not None:
+                duration = int((stop_index - start_index) / Fs_intan)
 
-                if start_index is not None and stop_index is not None:
-                    duration = np.floor((stop_index - start_index) / Fs_intan)
-                    digital_inputs = True
-
-            if not digital_inputs:
+            else:
+                # there was no start or stop index
                 duration = len(t_intan) / Fs_intan  # duration value that would be reported in the .pos/.set settings
                 if type(duration) == np.ndarray:
                     duration = duration[0]  # the following is_integer() method does not work in an ndarray
@@ -300,6 +266,7 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
                     duration = math.floor(duration)  # the new integer duration value
             return duration
 
+    # convert each tetrode
     for tetrode, tetrode_channels in sorted(probe_map.items()):
 
         msg = '[%s %s]: Converting the following tetrode: %d!' % \
@@ -326,36 +293,21 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
             continue
 
         # get_tetrode_data
-        data, t_intan, data_digital_in, data_analog_in = get_intan_data(session_files, tetrode_channels, tetrode, self,
-                                                                        verbose=True,
-                                                                        analog_data=True,
-                                                                        digital_data=True,
-                                                                        ephys_data=True)
+        data, t_intan, _, _ = get_intan_data(session_files, tetrode_channels, tetrode, self,
+                                             verbose=True, analog_data=False, digital_data=False, ephys_data=True)
 
-        # splice the ephys data so that it only occured between the start and stop of the maze
+        # splice the ephys data so that it only occurred between the start and stop of the maze
         # (info that is in the digital signal)
 
-        digital_inputs = False
-        if file_header['num_board_dig_in_channels'] > 0:
-            start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in)
+        if start_index is not None and stop_index is not None:
+            duration = int((stop_index - start_index) / Fs_intan)
+            # slicing the data to make it bound between the start and (new) stop
+            # of the behavior
+            data = data[:, start_index:stop_index]
+            t_intan = t_intan[start_index:stop_index] - t_intan[start_index]
 
-            if start_index is not None and stop_index is not None:
-                duration = np.floor((stop_index - start_index) / Fs_intan)
-                # we floor the value so we can have a integer value for the duration
-                n = int(duration * Fs_intan)
-
-                # creating a new stop_index with the new number of samples that will
-                # allow for the rounded integer value duration
-                stop_index = start_index + n
-
-                # slicing the data to make it bound between the start and (new) stop
-                # of the behavior
-                data = data[:, start_index:stop_index]
-                t_intan = t_intan[start_index:stop_index] - t_intan[start_index]
-
-                digital_inputs = True
-
-        if not digital_inputs:
+        else:
+            # then there was no start and stop signal in the analog / digital
             duration = len(t_intan) / Fs_intan  # duration value that would be reported in the .pos/.set settings
             if type(duration) == np.ndarray:
                 duration = duration[0]  # the following is_integer() method does not work in an ndarray
@@ -376,6 +328,7 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
 
         # software re-referencing
         if software_rereference:
+            # perform software re-referencing, to remove any common data between the tetrodes / channels
             tetrode_channels = np.asarray(tetrode_channels)
             reref_channels = np.asarray(reref_channels)
             if reref_method == 'sd':
@@ -416,6 +369,7 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
                     channel_bool = np.where(tetrode_channels != reref_channels[0])[0]
                     data[channel_bool, :] -= reref_data[0, :]
 
+        # notch filter the signal
         if notch_filter:
             data = notch_filt(data, Fs_intan, freq=notch_freq)
 
@@ -429,7 +383,18 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
             # interpolate if we need to
             if Fs_intan != desired_Fs:
 
-                msg = '[%s %s]: Current Fs is %d, we want a Fs of %d, interpolating!!' % \
+                if desired_Fs != 48e3 and desired_Fs != 24e3:
+                    msg = '[%s %s]: For Tint you need to record at 48k or 24k, you chose %.2f!' % \
+                          (str(datetime.datetime.now().date()),
+                           str(datetime.datetime.now().time())[:8], float(desired_Fs))
+                    if self:
+                        self.LogAppend.myGUI_signal_str.emit(msg)
+                    else:
+                        print(msg)
+
+                    raise ValueError('Improper desired_Fs: %.2f' % float(desired_Fs))
+
+                msg = '[%s %s]: Current Fs is %d, we want a Fs of %d, interpolating!' % \
                       (str(datetime.datetime.now().date()),
                        str(datetime.datetime.now().time())[:8], int(Fs_intan), int(desired_Fs))
                 if self:
@@ -445,9 +410,6 @@ def intan2mda(session_files, desired_Fs=48e3, interpolation=True, notch_filter=T
                 interp_function = interpolate.interp1d(t_intan, data, kind='linear', fill_value="extrapolate", axis=1)
 
                 data = interp_function(t)
-
-        else:
-            pass
 
         data = np.int16(data)
 

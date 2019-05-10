@@ -6,6 +6,8 @@ import json
 import core.intan_rhd_functions as load_rhd
 from core.utils import session_datetime
 from core.set_conversion import overwrite_set_parameter
+from core.intan_rhd_functions import rhd_duration
+from core.default_parameters import default_arena, default_experimenter_name
 import shutil
 import time
 
@@ -56,7 +58,7 @@ def pos2hz(t, x, y, start=None, stop=None, Fs=50):
     return posx, posy, post
 
 
-def rewrite_pos(session_files, positionSampleFreq, self=None):
+def rewrite_pos(session_files, positionSampleFreq, start_index=None, stop_index=None, self=None):
     """
     This function will re-create the position files that were created by the VirtualMaze in the case that the .pos file
     was not created properly.
@@ -69,77 +71,82 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
     cue_fname = os.path.join(directory, tint_basename + '_cues.json')
     pos_fpath = os.path.join(directory, tint_basename + '.pos')  # defining the name of the most recent .pos file
 
-    with open(cue_fname, 'r') as f:
-        settings = json.load(f)
+    if os.path.exists(cue_fname):
+        with open(cue_fname, 'r') as f:
+            settings = json.load(f)
+            experimenter_name = settings['Experimenter Name:']
+            arena = settings['Virtual Arena:']
+    else:
+        msg = '[%s %s]: The cues file does not exist: %s!' % (str(datetime.datetime.now().date()),
+                                                              str(datetime.datetime.now().time())[:8], cue_fname)
+        if self is None:
+            print(msg)
+        else:
+            self.LogAppend.myGUI_signal_str.emit(msg)
+        settings = {}
 
-    experimenter_name = settings['Experimenter Name:']
-    arena = settings['Virtual Arena:']
+        # just use random defaults
+        experimenter_name = default_experimenter_name
+        arena = default_arena
+
+    file_header = load_rhd.read_header(session_files[0])  # read the file header information from a session file
+    recording_Fs = int(file_header['sample_rate'])
 
     # read the position file
 
     if not os.path.exists(raw_filename):
         # then you cannot re-create the positions because the original position data was not saved
         # create a dummy position file
+
+        msg = '[%s %s]: Raw filename does not exist: %s, creating dummy position!#red' % (str(datetime.datetime.now().date()),
+                                                   str(datetime.datetime.now().time())[
+                                                   :8], raw_filename)
+        if self is None:
+            print(msg)
+        else:
+            self.LogAppend.myGUI_signal_str.emit(msg)
+
+        # we need to get the duration first
+        if start_index is not None and stop_index is not None:
+            duration = np.floor((stop_index - start_index) / recording_Fs)
+        else:
+            # then we don't have the start and stop signals recorded, just create a file based off of the entire
+            # duration of the session
+            duration = 0
+            for file in session_files:
+                duration += rhd_duration(file)
+            duration = int(np.rint(duration))
+
+        dummy_parameters = get_dummy_parameters(arena, experimenter_name, duration)
+        write_dummy_pos(pos_fpath, dummy_parameters)
         return
+
+    # read in the position raw position data
 
     positions = np.loadtxt(raw_filename)
     positions[:, 0] = positions[:, 0] - positions[0, 0]
 
+    # create the time (t), x position (x), and y position (y) variables
     t = positions[:, 0]
     x = positions[:, 1]
     y = positions[:, 2]
 
     # ------------------------------------
 
-    file_header = load_rhd.read_header(session_files[0])  # read the file header information from a session file
-    recording_Fs = int(file_header['sample_rate'])
+    if start_index is not None and stop_index is not None:
+        # then we found our start and stop values through the Analog/Digital inputs
+        duration = np.floor((stop_index - start_index) / recording_Fs)
+        start = 0
+        stop = start + duration
 
-    AD_input = False
+        posx, posy, post = pos2hz(t, x, y, start=start, stop=stop)
 
-    # check if there are digital inputs in the intan system that will be used to sync behavior w/ ephys data
-    if file_header['num_board_dig_in_channels'] > 0 or file_header['num_board_adc_channels'] > 0:
-        # then we have the analog/digitaldigital values
+        positions = np.vstack((posx, posy, post)).T
 
-        # reading the analog/digital values #
-        data_digital_in = np.array([])
-        data_analog_in = np.array([])
-        for session_file in sorted(session_files, reverse=False):
-            # Loads each session and appends them to create one matrix of data for the current tetrode
-            # file_data = load_rhd.read_data(session_file)  # loading the .rhd data
-            file_data = load_rhd.read_data(session_file, include_digital=True, include_analog=True, include_ephys=False)
+        # the appropriate digital values were found, use the new get sync function
+        window_values, original_positions, positions = sync_positions_with_pulse(positions, arena)
 
-            # Acquiring session information
-            if file_header['num_board_dig_in_channels'] > 0:
-                if data_digital_in.shape[0] == 0:
-                    data_digital_in = file_data['board_dig_in_data']
-                else:
-                    data_digital_in = np.concatenate((data_digital_in, file_data['board_dig_in_data']), axis=1)
-
-            if file_header['num_board_adc_channels'] > 0:
-                if data_analog_in.shape[0] == 0:
-                    data_analog_in = file_data['board_adc_data']
-                else:
-                    data_analog_in = np.concatenate((data_analog_in, file_data['board_adc_data']), axis=1)
-
-        start_index, stop_index = load_rhd.get_data_limits(directory, tint_basename, data_digital_in, data_analog_in,
-                                                           self=self)
-
-        if start_index is not None and stop_index is not None:
-
-            duration = np.floor((stop_index - start_index) / recording_Fs)
-            start = 0
-            stop = start + duration
-
-            AD_input = True
-
-            posx, posy, post = pos2hz(t, x, y, start=start, stop=stop)
-
-            positions = np.vstack((posx, posy, post)).T
-
-            # the appropriate digital values were found, use the new get sync function
-            window_values, original_positions, positions = sync_positions_with_pulse(positions, arena)
-
-    if not AD_input:
+    else:
         # then somehow the start and stop values were not recorded, use the old technique for synchronizing
         # the behavior with the ephys
         if 'maze_start_time' not in settings.keys():
@@ -165,7 +172,20 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
     current_y_min = np.amin(positions[:, 1])
     positions[:, 1] = -positions[:, 1] + -np.amin(-positions[:, 1], axis=0) + current_y_min
 
-    pix_per_meter = settings['Pixels Per Meter(PPM): ']
+    if 'Pixels Per Meter(PPM):' not in settings.keys():
+        pix_per_meter = 100
+
+        msg = '[%s %s]: the Pixel Per Meter value is not included in the following cues file: %s, using 100 PPM!#red' % (
+        str(datetime.datetime.now().date()),
+        str(datetime.datetime.now().time())[
+        :8], cue_fname)
+        if self is None:
+            print(msg)
+        else:
+            self.LogAppend.myGUI_signal_str.emit(msg)
+    else:
+        pix_per_meter = settings['Pixels Per Meter(PPM): ']
+
     # min_x, max_x, min_y, max_y, window_min_x, window_max_x, window_min_y, window_max_y = window_values
     min_x, max_x, min_y, max_y, window_min_x, window_min_y, window_max_x, window_max_y = window_values
     try:
@@ -253,8 +273,9 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
             else:
                 self.LogAppend.myGUI_signal_str.emit(msg)
 
-        with open(cue_fname, 'r') as f:
-            settings = json.load(f)
+        if os.path.exists(cue_fname):
+            with open(cue_fname, 'r') as f:
+                settings = json.load(f)
 
         with open(cue_fname, 'w') as f:
             settings['duration'] = duration
@@ -266,24 +287,10 @@ def rewrite_pos(session_files, positionSampleFreq, self=None):
 
 
 def get_window_values(positions, arena):
-    '''
-    min_x = 0  # found in Tint's field view
-    max_x = 512  # found in Tint's field view
-    min_y = 0  # found in Tint's field view
-    max_y = 523  # found in Tint's field view
-    '''
-
     min_x = 0  # found in previous pos files
     max_x = 768  # found in previous pos files
     min_y = 0  # found in previous pos files
     max_y = 574  # found in previous pos files
-
-    '''
-    window_min_x = 284  # 768/2 - 100
-    window_max_x = 484  # 768/2 + 100
-    window_min_y = 187  # 574/2 - 100
-    window_max_y = 387  # 574/2 + 100
-    '''
 
     # I used to have hard coded values, but this is used in calculating the center
     # of the arena so I will code the center values here. Theoretically we could just
@@ -338,16 +345,8 @@ def sync_positions_with_ctime(positions, current_session, maze_start_time, posit
 
     window_values = get_window_values(positions, arena)
 
-    # center_vals = [np.mean([min_x, max_x]), np.mean([min_y, max_y])]
-    # center_vals = np.amin(positions[:, :2], axis=0)
-
     original_positions = positions.copy()  # copying the original positions
     start_position = positions[0].reshape((1, len(positions[0])))
-    # end_position = main.positions[-1].reshape((1, len(main.positions[-1])))
-
-    # subtracting the means and then centering the values around the center points
-    '''positions[:, :2] = positions[:, :2] - np.mean(positions[:, :2], axis=0) + np.array(
-        [center_vals[0], center_vals[1]])'''
 
     # make sure the minimum x and y is zero
     positions[:, :2] = positions[:, :2] - np.amin(positions[:, :2], axis=0)
@@ -377,14 +376,7 @@ def sync_positions_with_pulse(positions, arena):
 
     window_values = get_window_values(positions, arena)
 
-    # center_vals = [np.mean([min_x, max_x]), np.mean([min_y, max_y])]
-    # center_vals = np.amin(positions[:, :2], axis=0)
-
     original_positions = positions.copy()  # copying the original positions
-
-    # subtracting the means and then centering the values around the center points
-    '''positions[:, :2] = positions[:, :2] - np.mean(positions[:, :2], axis=0) + np.array(
-        [center_vals[0], center_vals[1]])'''
 
     # make sure the minimum x and y is zero
     positions[:, :2] = positions[:, :2] - np.amin(positions[:, :2], axis=0)
@@ -393,8 +385,18 @@ def sync_positions_with_pulse(positions, arena):
 
 
 def get_dummy_parameters(arena, experimenter_name, duration):
-    window_values = get_window_values()
-    min_x, max_x, min_y, max_y, window_min_x, window_min_y, window_max_x, window_max_y = window_values
+    # just chose the values from the simple circular track, doesn't really matter
+
+    min_x = 0  # found in previous pos files
+    max_x = 768  # found in previous pos files
+    min_y = 0  # found in previous pos files
+    max_y = 574  # found in previous pos files
+
+    window_min_x = 0
+    window_min_y = 0
+    window_max_x = 160
+    window_max_y = 160
+
     dummy_session_parameters = {'experimenter': experimenter_name, 'arena': arena,
                                 'min_x': min_x, 'max_x': max_x,
                                 'min_y': min_y, 'max_y': max_y, 'window_min_x': window_min_x,
@@ -466,17 +468,13 @@ def write_dummy_pos(position_file, session_parameters):
                 y2 = 1023
                 unused = 0
                 total_pix = numpix1  # total number of pixels tracked
-                # t_byte = struct.pack('>i', sample_num)
+
                 write_list.append(struct.pack('>i', sample_num))
-                # pos_byte = struct.pack('>8h', int(np.rint(main.positions[sample_num,0])), int(
-                # np.rint(main.positions[sample_num,1])), x2, y2, numpix1, numpix2, total_pix, unused)
 
                 write_list.append(struct.pack('>8h', int(np.rint(x[sample_num])),
                                               int(np.rint(y[sample_num])), x2, y2, numpix1,
                                               numpix2, total_pix, unused))
 
-        # f.seek(0, 2)
-        # f.writelines([bytes(headers, 'utf-8'), t_byte, pos_byte, bytes('\r\ndata_end\r\n', 'utf-8')])
         write_list.append(bytes('\r\ndata_end\r\n', 'utf-8'))
         f.writelines(write_list)
 
@@ -495,7 +493,7 @@ def convert_position(session_files, position_filename, positionSampleFreq, outpu
         else:
             self.LogAppend.myGUI_signal_str.emit(msg)
 
-            rewrite_pos(session_files, positionSampleFreq, self=self)
+        rewrite_pos(session_files, positionSampleFreq, self=self)
 
     else:
 

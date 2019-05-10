@@ -71,9 +71,9 @@ def write_tetrode_data(filepath, spike_times, spike_data, samples_per_spike=50, 
         bp_timestamp = '\nbytes_per_timestamp %d' % (4)
         # samps_per_spike = '\nsamples_per_spike %d' % (int(Fs*1e-3))
         samps_per_spike = '\nsamples_per_spike %d' % (int(samples_per_spike))
-        sample_rate = '\nsample_rate %d hz' % (int(Fs))
-        b_p_sample = '\nbytes_per_sample %d' % (1)
-        # b_p_sample = '\nbytes_per_sample %d' % (4)
+        # even despite a possible 24000 sample rate, it will always say 48000
+        sample_rate = '\nsample_rate %d hz' % (int(48000))
+        b_p_sample = '\nbytes_per_sample %d' % 1
         spike_form = '\nspike_format t,ch1,t,ch2,t,ch3,t,ch4'
 
         num_spikes = '\nnum_spikes %d' % (spike_data.shape[1])

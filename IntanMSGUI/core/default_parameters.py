@@ -31,18 +31,29 @@ positionSampleFreq = 50  # sampling frequency of position, default 50
 # just needs to be set in the function so I have it set to None.
 
 axona_refs = {
-    'b6_august_18_1': [4, 3],
-    'b6_august_18_2': [4, 3],
-    'j20_sleep_1': [4, 3],
-    'j20_sleep_2': [4, 3],
-    'b6_sep_18_1': [4, 3],
+    'b6_august_18_1': [4, 3],  # 2a, 1d
+    'b6_august_18_2': [4, 3],  # 2a, 1d
+    'j20_sleep_1': [4, 3],  # 2a, 1d
+    'j20_sleep_2': [4, 3],  # 2a, 1d
+    'b6_sep_18_1': [4, 3],  # 2a, 1d
+    'ANT1_2': [4, 3],  # 2a, 1d
+    'NT_360a_2': [15, 6],  # 4d, 2c
+    'NT_361a_2': [15, 6],  # 4d, 2c
+    'march_19': [13, 3],  # 2a, 1d
+    'NT_181': [4, 3],  # 2a, 1d
+    'b6_j20n_76a_2': [15, 6],  # 4d, 2c
+    'b6_j20n_82a_5': [15, 6],  # 4d, 2c
 }
 
 # ------------- default parameters that are shown within the GUI ---------------
 
 # INTERPOLATE
-interpolation = True  # if you want to interpolate, options: True or False, remember capital letter
-desired_Fs = int(48e3)  # Sampling Frequency you will interpolate to
+# interpolation = True  # if you want to interpolate, options: True or False, remember capital letter
+interpolation = False
+if interpolation:
+    desired_Fs = int(48e3)  # Sampling Frequency you will interpolate to
+else:
+    desired_Fs = int(24e3)
 
 # WHITEN
 whiten = 'true'  # if you want to whiten or not, 'true' or 'false', lower case letters
@@ -51,7 +62,7 @@ whiten = 'true'  # if you want to whiten or not, 'true' or 'false', lower case l
 # THRESHOLD
 flip_sign = True  # if you want to flip the signal (multiply by -1)
 
-detect_interval = 30  # it will split up the data into segments of this value and find a peak/trough for each segment
+detect_interval = 10  # it will split up the data into segments of this value and find a peak/trough for each segment
 detect_sign = 1  # 0 = positive and negative peaks, 1 = positive peaks, -1 = negative peaks
 
 if whiten == 'true':
@@ -66,7 +77,7 @@ else:
 
 # BANDPASS
 freq_min = 300  # min frequency to bandpass at
-freq_max = 6000  # max freq to bandpass at
+freq_max = 7000  # max freq to bandpass at
 
 # MASK
 # The amount of indices that you will segment for masking artifacts. if you leave as None it will
@@ -121,7 +132,10 @@ clip_scalar = 1.05  # this will multiply the clipping value found via the remove
 
 # feature parameters
 num_features = 10
-max_num_clips_for_pca = 3000
+max_num_clips_for_pca = 1000
 
+# dummy position variables
+default_experimenter_name = 'Geoff'
+default_arena = 'Simple Circular Track'
 
 # END PARAMETERS

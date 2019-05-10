@@ -113,8 +113,15 @@ def get_session_parameters(tint_basename, session_files, Fs, pre_spike_samples=1
 
 
 def write_set(filename, session_files, session_parameters):
-    # session_path, session_filename = os.path.split(filename)
     trial_date, trial_time = session_datetime(session_files[0])
+
+    # oddly enough the only thing in the set file that indicates that the file was recorded at 24k for 2ms chunks
+    # is the Spike2msMode value. The raw rate still says 48k oddly. So we will have to read the Spike2msMode to
+    # determine the sample rate
+    if session_parameters['Fs'] == 24e3:
+        Spike2msMode = 1
+    else:
+        Spike2msMode = 0
 
     if session_parameters['n_channels'] >= 128:
         mode = 1
@@ -569,7 +576,7 @@ def write_set(filename, session_files, session_parameters):
                  '\nthresh_lookback 2',
                  '\npalette C:\DACQ\default.gvp',
                  '\ncheckUpdates 0',
-                 '\nSpike2msMode 0',
+                 '\nSpike2msMode %d' % Spike2msMode,
                  '\nDIOTimeBase 0',
                  '\npretrigSamps  %d' % (session_parameters['pretrigSamps']),
                  '\nspikeLockout %d' % (session_parameters['spikeLockout']),
@@ -601,7 +608,7 @@ def write_set(filename, session_files, session_parameters):
                  '\nBPFinsightmode 0',
                  '\nBPFcaladjust 1.00000000',
                  '\nBPFcaladjustmode 0',
-                 '\nrawRate %d' % (session_parameters['Fs']),
+                 '\nrawRate %d' % 48000,  # this will remain 48000 no matter what, even when recording at 24k
                  '\nRawRename 1',
                  '\nRawScope 1',
                  '\nRawScopeMode 0',
@@ -711,6 +718,22 @@ def write_set(filename, session_files, session_parameters):
 def convert_setfile(session_files, tint_basename, set_filename, Fs, pre_spike_samples=10, post_spike_samples=40,
                     rejthreshtail=43,
                     rejstart=30, rejthreshupper=100, rejthreshlower=-100, self=None):
+    """
+    Tint requires a .set file, this function will create the set file given the convert settings.
+
+    :param session_files:
+    :param tint_basename:
+    :param set_filename:
+    :param Fs:
+    :param pre_spike_samples:
+    :param post_spike_samples:
+    :param rejthreshtail:
+    :param rejstart:
+    :param rejthreshupper:
+    :param rejthreshlower:
+    :param self:
+    :return:
+    """
 
     if os.path.exists(set_filename):
         msg = '[%s %s]: The following set file has already been created: %s, skipping creation!#Red' % \
@@ -767,6 +790,8 @@ def overwrite_eeg_set_params(tint_basename, set_filename):
     session_file = '%s.rhd' % tint_basename
     probe = get_probe_name(session_file)
 
+    cues_data = {}
+    converted_eegs = None
     if os.path.exists(cues_filename):
         with open(cues_filename, 'r') as f:
             cues_data = json.load(f)

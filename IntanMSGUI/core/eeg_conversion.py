@@ -78,16 +78,7 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
 
     # downsample to 4.8khz signal for EGF signal (EEG is derived from EGF data)
 
-    msg = '[%s %s]: Downsampling the EEG data to 4.8kHz!' % \
-          (str(datetime.datetime.now().date()),
-           str(datetime.datetime.now().time())[:8])
-
-    # data = scipy.signal.decimate(data, int(Fs_tint / Fs_EGF), ftype='fir', axis=1)
-    # data = scipy.signal.decimate(data, int(Fs_tint / Fs_EGF), axis=1)
     data = data[:, 0::int(Fs / Fs_EGF)]
-
-    # notch filter the data
-    # data = sp.Filtering().notch_filt(data, Fs_EGF, freq=60, band=10, order=3)
 
     # append zeros to make the duration a round number
     # duration_round = np.ceil(data.shape[1] / Fs_EGF)  # the duration should be rounded up to the nearest integer
@@ -99,8 +90,6 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
         data = np.hstack((data, missing_samples))
 
     # ------------------------------------- clipping data ---------------------------------------------
-    # data = np.rint(data)  # convert the data to integers
-    # data = data.astype(np.int32)  # convert the data to integers
     # converting the data from uV to int16
     data = (data / scalar16)
 
@@ -125,14 +114,6 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
     # this uses a 101 tap von hann filter @ 125 Hz
     data, N = fir_hann(data, Fs_EGF, 125, n_taps=101, showresponse=0)
 
-    # ---------------------------------------- clipping data ------------------------------------------------------
-    # converting the data from uV to int16
-    # data = (data / scalar16).astype(np.int16)
-
-    # ensuring the appropriate range of the values
-    # data[np.where(data > 32767)] = 32767
-    # data[np.where(data < -32768)] = -32768
-
     # --------------------------------------------------------------------------------------------------------------
 
     data = int16toint8(data)
@@ -147,17 +128,17 @@ def create_eeg(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
 
 
 def EEG_downsample(EEG):
-    """The EEG data is created from the EGF files which involves a 4.8k to 250 Hz conversion"""
+    """The EEG data is created from the EGF files which involves a 4.8k to 250 Hz conversion.
+
+    The downsampling from 4.8k to 250Hz is a 19.2 factor, thus we will sample every 19 samples (5 times),
+    and then one time at 20 samples. This will provide an average of 19.2
+    """
     EEG = EEG.flatten()
 
     i = -1
-    # i = 0
-
-    # indices = [i]
     indices = []
     while i < len(EEG) - 1:
         indices.extend([(i + 19), (i + 19 * 2), (i + 19 * 3), (i + 19 * 4), (i + 19 * 4 + 20)])
-        # indices.extend([(i+20), (i+20+19), (i+20+19*2), (i+20+19*3), (i+20+19*4)])
         i += (19 * 4 + 20)
 
     indices = np.asarray(indices)
@@ -182,13 +163,9 @@ def write_eeg(filepath, data, Fs, set_filename=None):
     num_samples = int(len(data))
 
     if '.egf' in session_filename:
-
-        # EEG_Fs = 4800
         egf = True
 
     else:
-
-        # EEG_Fs = 250
         egf = False
 
     # if the duration before the set file was overwritten wasn't a round number, it rounded up and thus we need
@@ -341,16 +318,7 @@ def create_egf(filename, data, Fs, set_filename, scalar16, DC_Blocker=True, notc
 
     # downsample to 4.8khz signal for EGF signal (EEG is derived from EGF data)
 
-    msg = '[%s %s]: Downsampling the EGF data to 4.8kHz!' % \
-        (str(datetime.datetime.now().date()),
-         str(datetime.datetime.now().time())[:8])
-
-    # data = scipy.signal.decimate(data, int(Fs_tint / Fs_EGF), ftype='fir', axis=1)
-    # data = scipy.signal.decimate(data, int(Fs_tint / Fs_EGF), axis=1)
     data = data[:, 0::int(Fs / Fs_EGF)]
-
-    # notch filter the data
-    # data = sp.Filtering().notch_filt(data, Fs_EGF, freq=60, band=10, order=3)
 
     # append zeros to make the duration a round number
     # duration_round = np.ceil(data.shape[1] / Fs_EGF)  # the duration should be rounded up to the nearest integer
@@ -443,8 +411,19 @@ def convert_eeg(session_files, tint_basename, output_basename, Fs, convert_chann
 
     cue_fname = os.path.join(directory, tint_basename + '_cues.json')
 
-    with open(cue_fname) as f:
-        cue_data = json.load(f)
+    if os.path.exists(cue_fname):
+        with open(cue_fname) as f:
+            cue_data = json.load(f)
+    else:
+        msg = '[%s %s]: The following cue filename does not exist: %s!#red' % \
+              (str(datetime.datetime.now().date()),
+               str(datetime.datetime.now().time())[:8], cue_fname)
+        if self is not None:
+            self.LogAppend.myGUI_signal_str.emit(msg)
+        else:
+            print(msg)
+
+        cue_data = {}
 
     if 'converted_eeg' in cue_data.keys():
         # then the session has been converted already, check to ensure that we maintain the correct naming

@@ -178,7 +178,12 @@ def BatchAnalyze(main_window, settings_window, directory):
                             reref_channels = tintRef2intan(axona_refs[mouse],
                                                            tetrode_map,
                                                            probe)
-                            print('The following reref_channels were chosen: ', reref_channels)
+
+                            main_window.LogAppend.myGUI_signal_str.emit(
+                                '[%s %s]: The following reref_channels were chosen: %s!' % (
+                                str(datetime.datetime.now().date()),
+                                str(datetime.datetime.now().time())[
+                                :8], reref_channels))
 
                         whiten = settings_window.whiten_cb.isChecked()
                         if whiten:

@@ -1,6 +1,6 @@
 import os
 import datetime
-
+import numpy as np
 from core.tetrode_conversion import batch_basename_tetrodes, batch_add_tetrode_headers
 from core.convert_position import convert_position
 from core.eeg_conversion import convert_eeg, get_eeg_channels
@@ -9,10 +9,10 @@ from core.intan2mda import intan2mda, get_reref_data
 from core.mdaSort import sort_intan
 from core.set_conversion import convert_setfile, overwrite_eeg_set_params
 from core.rhd_utils import tetrode_map
-from core.intan_rhd_functions import read_header, get_probe_name, get_ref_index
+from core.intan_rhd_functions import read_header, get_probe_name, get_ref_index, get_data_limits, read_data, read_header
 
 
-def validate_session(rhd_basename_file, output_basename, convert_channels, self=None, verbose=True):
+def validate_session(rhd_basename_file, output_basename, convert_channels, self=None, verbose=True, require_pos=True):
     """
     This will return an output of True if you should continue to convert this session,
     otherwise it is convertable.
@@ -36,21 +36,22 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
 
     # check if there is a position file
 
-    if not os.path.exists(pos_filename):
-        # there is no position filename, check if there is a raw position file to
-        # create a position file with.
+    if require_pos:
+        if not os.path.exists(pos_filename):
+            # there is no position filename, check if there is a raw position file to
+            # create a position file with.
 
-        if not os.path.exists(raw_pos_filename):
-            if verbose:
-                msg = ('[%s %s]: There is no .pos file or raw position file to create a ' + \
-                       '.pos file! Skipping the following basename: %s!') % \
-                      (str(datetime.datetime.now().date()),
-                       str(datetime.datetime.now().time())[:8], tint_basename)
-                if self:
-                    self.LogAppend.myGUI_signal_str.emit(msg)
-                else:
-                    print(msg)
-            return False
+            if not os.path.exists(raw_pos_filename):
+                if verbose:
+                    msg = ('[%s %s]: There is no .pos file or raw position file to create a ' + \
+                           '.pos file! Skipping the following basename: %s!') % \
+                          (str(datetime.datetime.now().date()),
+                           str(datetime.datetime.now().time())[:8], tint_basename)
+                    if self:
+                        self.LogAppend.myGUI_signal_str.emit(msg)
+                    else:
+                        print(msg)
+                return False
 
     # TODO: Add a check for the cues_filename, will add it if we need to.
 
@@ -199,6 +200,56 @@ def cleanup_files(directory, tint_basename, delete_pre=True, delete_firings=Fals
             os.remove(file)
 
 
+def get_start_stop(session_files, directory, tint_basename, self=None):
+    """
+    This function will look through the files and determine where the start and stop time is, according
+    to the digital and analog signals it reads.
+    """
+    # check if there are digital inputs in the intan system that will be used to sync behavior w/ ephys data
+
+    file_header = read_header(session_files[0])  # read the file header information from a session file
+    recording_Fs = int(file_header['sample_rate'])
+
+    if file_header['num_board_dig_in_channels'] > 0 or file_header['num_board_adc_channels'] > 0:
+        # then we have the analog/digitaldigital values
+
+        # reading the analog/digital values #
+        data_digital_in = np.array([])
+        data_analog_in = np.array([])
+        for session_file in sorted(session_files, reverse=False):
+            # Loads each session and appends them to create one matrix of data for the current tetrode
+            # file_data = load_rhd.read_data(session_file)  # loading the .rhd data
+            file_data = read_data(session_file, include_digital=True, include_analog=True, include_ephys=False)
+
+            # Acquiring session information
+            if file_header['num_board_dig_in_channels'] > 0:
+                if data_digital_in.shape[0] == 0:
+                    data_digital_in = file_data['board_dig_in_data']
+                else:
+                    data_digital_in = np.concatenate((data_digital_in, file_data['board_dig_in_data']), axis=1)
+
+            if file_header['num_board_adc_channels'] > 0:
+                if data_analog_in.shape[0] == 0:
+                    data_analog_in = file_data['board_adc_data']
+                else:
+                    data_analog_in = np.concatenate((data_analog_in, file_data['board_adc_data']), axis=1)
+
+        start_index, stop_index = get_data_limits(directory, tint_basename, data_digital_in, data_analog_in,
+                                                           self=self)
+
+        duration = np.floor((stop_index - start_index) / recording_Fs)
+        # we floor the value so we can have a integer value for the duration
+        n = int(duration * recording_Fs)
+
+        # creating a new stop_index with the new number of samples that will
+        # allow for the rounded integer value duration
+        stop_index = start_index + n
+
+        return start_index, stop_index
+
+    return None, None
+
+
 def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                                detect_interval=10,
                                detect_sign=0, detect_threshold=3, freq_min=300, freq_max=6000,
@@ -217,6 +268,46 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                                num_features=10,
                                max_num_clips_for_pca=1000,
                                remove_outliers=False, eeg_channels='first', self=None):
+    """
+    This function will convert the current sessions data to .mda format, MountainSort the data,
+    then convert the data to Tint (creating .egf/.eeg, .pos, .N, and .cut files.)
+
+    :param session_files:
+    :param interpolation:
+    :param whiten:
+    :param detect_interval:
+    :param detect_sign:
+    :param detect_threshold:
+    :param freq_min:
+    :param freq_max:
+    :param mask_threshold:
+    :param flip_sign:
+    :param software_rereference:
+    :param reref_method:
+    :param reref_channels:
+    :param masked_chunk_size:
+    :param mask:
+    :param mask_num_write_chunks:
+    :param clip_size:
+    :param notch_filter:
+    :param desired_Fs:
+    :param positionSampleFreq:
+    :param pre_spike_samples:
+    :param post_spike_samples:
+    :param rejthreshtail:
+    :param rejstart:
+    :param rejthreshupper:
+    :param rejthreshlower:
+    :param remove_spike_percentage:
+    :param clip_scalar:
+    :param clip_method:
+    :param num_features:
+    :param max_num_clips_for_pca:
+    :param remove_outliers:
+    :param eeg_channels:
+    :param self:
+    :return:
+    """
 
     directory = os.path.dirname(session_files[0])
 
@@ -246,13 +337,14 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
 
     probe_map = tetrode_map[probe]
 
+    data_start_index, data_stop_index = get_start_stop(session_files, directory, tint_basename, self=self)
+
     if 'reference_channel' in file_header.keys():
         # Intan USB does not have this option
         reference_channel = file_header['reference_channel']
         if reference_channel != 'n/a':
             reference_channel = get_ref_index(file_header['amplifier_channels'],
                                               reference_channel)
-            # reference_channel = int(reference_channel.split('-')[-1]) + 1
 
             # TODO: add it so that if you want to change software references
 
@@ -281,15 +373,21 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
         if reref_channels is None:
             if reref_method == 'sd':
                 reref_data, reref_channels = get_reref_data(session_files, probe_map,
-                                                           mode=reref_method)
+                                                            mode=reref_method,
+                                                            start_index=data_start_index,
+                                                            stop_index=data_stop_index)
             elif reref_method == 'avg':
                 reref_data = get_reref_data(session_files, probe_map,
-                                            mode=reref_method)
+                                            mode=reref_method,
+                                            start_index=data_start_index,
+                                            stop_index=data_stop_index)
         else:
             reref_method = None  # we gave the channels, so set to None
             reref_data, reref_channels = get_reref_data(session_files,
-                                                       probe_map,
-                                                       channel=reref_channels)
+                                                        probe_map,
+                                                        channel=reref_channels,
+                                                        start_index=data_start_index,
+                                                        stop_index=data_stop_index)
     else:
         # deciding not to software re-reference
         reref_channels = None
@@ -297,7 +395,6 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
         reref_method = None
 
     # convert the intan data to .mda so they can be analyzed
-
     sort_duration = intan2mda(session_files, interpolation=interpolation,
                               notch_filter=notch_filter,
                               flip_sign=flip_sign,
@@ -306,6 +403,8 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                               reref_channels=reref_channels,
                               reref_method=reref_method,
                               desired_Fs=desired_Fs,
+                              start_index=data_start_index,
+                              stop_index=data_stop_index,
                               self=self)
 
     # sort the mda data
@@ -316,7 +415,7 @@ def convert_intan_mountainsort(session_files, interpolation=True, whiten='true',
                detect_threshold=detect_threshold,
                freq_min=freq_min,
                freq_max=freq_max,
-               mask_threshold=mask_threshold,
+               mask_threshold=int(mask_threshold),
                mask=mask,
                masked_chunk_size=masked_chunk_size,
                mask_num_write_chunks=mask_num_write_chunks,

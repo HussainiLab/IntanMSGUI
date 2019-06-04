@@ -10,13 +10,24 @@ from core.mountainsort_functions import _writemda
 
 
 def compute_ranking(values, mode='descending'):
-    if mode == 'descending':
-        ranking = np.argsort(values)[::-1]
-    elif mode == 'ascending':
-        ranking = np.argsort(values)
+    # rank contains the index values of the input array that would create the sorted array.
+    # i.e. rank = [2,0,1] means that the 0'th index of the sorted array should be the 2nd
+    # index of the input array the 1st index of the sorted array will be the 0'th input of
+    # the sorted array, etc.
+
+    # order contains the index values where the value of the given array would fit into the sorted
+    # array i.e. order = [1,2,0] means that the 0'th index of the input array should be the 1st
+    # index of the sorted array the 1st index of the input array will be the 2nd input of the
+    # sorted array, etc.
+
+    ranking = np.argsort(values)[::-1]
 
     order = np.r_[[np.where(value == ranking)[0]
                    for value in np.arange(len(values))]].flatten()
+
+    if mode == 'ascending':
+        order = np.flip(order)
+        ranking = np.flip(ranking)
 
     return ranking, order
 

@@ -79,7 +79,7 @@ def validate_session(rhd_basename_file, output_basename, convert_channels, self=
     #     directory) if '_raw.mda' in file if tint_basename in file]
 
     firing_fnames = [os.path.join(directory, file) for file in os.listdir(
-         directory) if '_firings.mda' in file if tint_basename in file]
+         directory) if '_firings.mda' in file if (tint_basename + '_') in file]
 
     # for file in raw_fnames:
     for file in firing_fnames:

@@ -9,8 +9,8 @@ class Choose_Dir(QtWidgets.QWidget):
         super(Choose_Dir, self).__init__()
         background(self)
         # deskW, deskH = background.Background(self)
-        width = self.deskW / 5
-        height = self.deskH / 5
+        width = int(round(self.deskW / 5))
+        height = int(round(self.deskH / 5))
         self.setGeometry(0, 0, width, height)
 
         with open(self.directory_settings, 'r+') as filename:
